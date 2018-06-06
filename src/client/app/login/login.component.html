@@ -1,0 +1,13 @@
+<form (ngSubmit)="onSubmit()" [formGroup]="form">
+  <label>
+    Login
+    <input formControlName="login" type="text" required autofocus>
+  </label>
+
+  <label>
+    Password
+    <!--<input formControlName="password" type="password" required>-->
+  </label>
+
+  <button type="submit" [disabled]="form.invalid">Sign In</button>
+</form>
