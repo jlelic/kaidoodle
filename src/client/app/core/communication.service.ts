@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import * as io from 'socket.io-client';
 import * as HandshakeMessage from '../../../shared/messages/handshake-message';
+import { ApiService } from "./api.service";
 
 interface Message {
   getType;
@@ -11,16 +12,21 @@ interface Message {
 export class CommunicationService {
 
   socket;
+  serverUrl: string;
 
-  constructor() {
-    this.socket = io('http://localhost:3000');
-    // this.socket.on('connection', () => {
-    //   console.log('Websocket connection established.');
-    //   this.send(new HandshakeMessage())
-    // });
+  constructor(api: ApiService) {
+    this.serverUrl = api.serverUrl;
   }
 
-  public send(message: Message){
+  init(token: string) {
+    this.socket = io(this.serverUrl);
+    this.socket.on('connect', () => {
+      console.log('Websocket connection established.');
+      this.send(new HandshakeMessage(token))
+    });
+  }
+
+  send(message: Message){
     this.socket.emit(message.getType(), message.getPayload());
   }
 
