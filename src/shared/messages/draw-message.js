@@ -1,11 +1,11 @@
 class Message {
 
-  constructor(token) {
-    this.token = token;
+  constructor(x, y) {
+    this.payload = {x, y};
   }
 
   static get type(){
-    return 'handshake';
+    return 'draw';
   }
 
   getType() {
@@ -13,10 +13,7 @@ class Message {
   }
 
   getPayload() {
-    return {
-      protocol: '0.1',
-      token: this.token
-    };
+    return this.payload;
   }
 
 }

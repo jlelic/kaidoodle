@@ -5,8 +5,9 @@ const server = require('http').createServer(app);
 const io = require('socket.io')(server);
 
 const HandshakeMessage = require('../shared/messages/handshake-message');
+const DrawMessage = require('../shared/messages/draw-message');
 
-const messages = [HandshakeMessage];
+const messages = [HandshakeMessage, DrawMessage];
 
 const tokens = {};
 const players = {};
@@ -23,6 +24,9 @@ const wsHandlers = {
     console.log(`Identified player ${login}`);
     players[login] = {};
     delete tokens[token];
+  },
+  [DrawMessage.type]: (socket, data) => {
+    socket.broadcast.emit(DrawMessage.type, data);
   }
 };
 
@@ -32,7 +36,12 @@ io.on('connection', (socket) => {
   messages.forEach(msg => {
     socket.on(msg.type, data => {
       console.log(`${msg.type}: ${JSON.stringify(data)}`);
-      wsHandlers[msg.type](socket, data);
+      const handler = wsHandlers[msg.type];
+      if(!handler){
+        console.warn(`No websocket handler for ${msg.type} message type!`);
+        return;
+      }
+      handler(socket, data);
     });
   });
 });
