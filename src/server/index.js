@@ -12,7 +12,6 @@ const messages = [HandshakeMessage, DrawMessage];
 
 const port = process.env.PORT || 3000;
 
-console.log(process.env);
 if (process.env.NODE_ENV === 'production') {
   const distPath = path.resolve(__dirname, '../../dist');
   app.use(express.static(distPath));
