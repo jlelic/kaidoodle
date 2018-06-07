@@ -11,6 +11,7 @@ import { LoginComponent } from './login/login.component';
 import { GameComponent } from './game/game.component';
 import { ErrorComponent } from './error/error.component';
 import { ApiService } from './core/api.service';
+import { GameModule } from "./game/game.module";
 
 const appRoutes: Routes = [
   { path: '', component: LoginComponent },
@@ -22,11 +23,11 @@ const appRoutes: Routes = [
   declarations: [
     AppComponent,
     LoginComponent,
-    GameComponent,
     ErrorComponent
   ],
   imports: [
     BrowserModule,
+    GameModule,
     HttpClientModule,
     ReactiveFormsModule,
     RouterModule.forRoot(

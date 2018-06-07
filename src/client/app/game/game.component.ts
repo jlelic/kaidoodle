@@ -31,7 +31,7 @@ export class GameComponent implements OnInit {
     this.context = canvas.getContext('2d');
     this.context.fillStyle = 'white';
     this.context.fillRect(0, 0, this.width, this.height);
-    const x = this.commmunication._incomingMessages.subscribe(({ type, data }) => {
+    const x = this.commmunication.incomingMessages.subscribe(({ type, data }) => {
       if (type == DrawMessage.type) {
         this.processDrawMessage(data);
       }

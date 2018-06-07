@@ -14,7 +14,8 @@ export class CommunicationService {
 
   socket;
   serverUrl = window.location.origin;
-  _incomingMessages: Subject<any>;
+  private _name: string;
+  private _incomingMessages: Subject<any>;
 
   constructor(api: ApiService) {
     this._incomingMessages = new Subject();
@@ -22,6 +23,10 @@ export class CommunicationService {
 
   get incomingMessages() {
     return this._incomingMessages;
+  }
+
+  get name() {
+    return this._name;
   }
 
   init(token: string) {
@@ -38,6 +43,10 @@ export class CommunicationService {
     this.socket.on('connect', () => {
       console.log('Websocket connection established.');
       this.send(new HandshakeMessage(token))
+    });
+
+    this.socket.on([HandshakeMessage.type], ({name}) => {
+      this._name = name;
     });
 
     this.socket.on("*", (type, data) => {

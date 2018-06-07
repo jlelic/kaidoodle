@@ -7,8 +7,9 @@ const io = require('socket.io')(server);
 
 const HandshakeMessage = require('../shared/messages/handshake-message');
 const DrawMessage = require('../shared/messages/draw-message');
+const ChatMessage = require('../shared/messages/chat-message');
 
-const messages = [HandshakeMessage, DrawMessage];
+const messages = [HandshakeMessage, DrawMessage, ChatMessage];
 
 const port = process.env.PORT || 3000;
 
@@ -23,18 +24,22 @@ const players = {};
 
 const wsHandlers = {
   [HandshakeMessage.type]: (socket, data) => {
-    const { token } = data.token;
-    const login = tokens[token];
+    const { token } = data;
+    const login = tokens[token] || 'TUTULO';
     if (!login) {
       console.error(`Unknown player token ${token}!`);
       return;
     }
     console.log(`Identified player ${login}`);
+    socket.emit(HandshakeMessage.type, {name: login});
     players[login] = {};
     delete tokens[token];
   },
   [DrawMessage.type]: (socket, data) => {
     socket.broadcast.emit(DrawMessage.type, data);
+  },
+  [ChatMessage.type]: (socket, data) => {
+    socket.broadcast.emit(ChatMessage.type, data);
   }
 };
 

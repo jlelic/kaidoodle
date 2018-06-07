@@ -1,0 +1,8 @@
+<div id="chatWindow">
+  <div *ngFor="let message of messages">
+    <strong>{{message.sender}}:</strong> {{message.text}}
+  </div>
+</div>
+<form [formGroup]="form" (submit)="onSubmit($event)">
+  <input type="text" formControlName="input" />
+</form>
