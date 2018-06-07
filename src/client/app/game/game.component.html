@@ -1,4 +1,6 @@
-<p>
-  <canvas id="gameCanvas" #canvas></canvas>
-  <chat></chat>
-</p>
+<div>
+{{name}}
+You're <span *ngIf="isDrawing">drawing</span><span *ngIf="!isDrawing">guessing</span>
+</div>
+<canvas id="gameCanvas" #canvas></canvas>
+<chat></chat>

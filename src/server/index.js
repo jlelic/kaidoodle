@@ -8,8 +8,9 @@ const io = require('socket.io')(server);
 const HandshakeMessage = require('../shared/messages/handshake-message');
 const DrawMessage = require('../shared/messages/draw-message');
 const ChatMessage = require('../shared/messages/chat-message');
+const StartGameMessage = require('../shared/messages/start-game-message');
 
-const messages = [HandshakeMessage, DrawMessage, ChatMessage];
+const incomingMessages = [HandshakeMessage, DrawMessage, ChatMessage];
 
 const port = process.env.PORT || 3000;
 
@@ -18,11 +19,36 @@ if (process.env.NODE_ENV === 'production') {
   app.use(express.static(distPath));
 }
 
+const STATE_IDLE = 'IDLE';
+const STATE_PLAYING = 'PLAYING';
+const STATE_COOLDOWN = 'COOLDOWN';
+
 const tokens = {};
 const players = {};
 const drawHistory = [];
 const chatHistory = [];
 
+let appState = STATE_IDLE;
+let drawingPlayerName = '';
+
+const startGame = () => {
+  const word = 'kai';
+  const wordHint = word.replace(/./g,'_ ');
+  const playerNames = Object.keys(players);
+  drawingPlayerName = playerNames[Math.floor(Math.random()*playerNames.length)];
+  playerNames.forEach(name => {
+    let message;
+    if (name == drawingPlayerName) {
+      message = new StartGameMessage(true, word);
+
+    } else {
+      message = new StartGameMessage(false, wordHint);
+    }
+    players[name].socket.emit(message.getType(), message.getPayload());
+  });
+  console.log(`Starting game, word: ${word}, player ${drawingPlayerName} drawing`);
+  appState = STATE_PLAYING;
+};
 
 const wsHandlers = {
   [HandshakeMessage.type]: (socket, data) => {
@@ -36,7 +62,12 @@ const wsHandlers = {
     socket.emit(HandshakeMessage.type, {name: login});
     drawHistory.forEach((data) => socket.emit(DrawMessage.type ,data));
     chatHistory.forEach((data) => socket.emit(ChatMessage.type ,data));
-    players[login] = {};
+    players[login] = { socket };
+
+    if (appState == STATE_IDLE && Object.keys(players).length >= 2) {
+      startGame();
+    }
+
     delete tokens[token];
   },
   [DrawMessage.type]: (socket, data) => {
@@ -58,7 +89,7 @@ const wsHandlers = {
 
 io.on('connection', (socket) => {
   console.log('New websocket connection.');
-  messages.forEach(msg => {
+  incomingMessages.forEach(msg => {
     socket.on(msg.type, data => {
       console.log(`${msg.type}: ${JSON.stringify(data)}`);
       const handler = wsHandlers[msg.type];

@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 
 import { CommunicationService } from '../core/communication.service';
 import * as DrawMessage from '../../../shared/messages/draw-message';
+import * as StartGameMessage from '../../../shared/messages/start-game-message';
 
 @Component({
   selector: 'app-game',
@@ -17,8 +18,14 @@ export class GameComponent implements OnInit {
   isMouseDown = false;
   prevX = null;
   prevY = null;
+  word = '';
+  isDrawing = false;
 
   constructor(private commmunication: CommunicationService) {
+  }
+
+  get name() {
+    return this.commmunication.name;
   }
 
   ngOnInit() {
@@ -32,8 +39,12 @@ export class GameComponent implements OnInit {
     this.context.fillStyle = 'white';
     this.context.fillRect(0, 0, this.width, this.height);
     const x = this.commmunication.incomingMessages.subscribe(({ type, data }) => {
+      debugger;
       if (type == DrawMessage.type) {
         this.processDrawMessage(data);
+      } else if (type == StartGameMessage.type){
+        this.word = data.word;
+        this.isDrawing = data.drawing;
       }
     })
   }
