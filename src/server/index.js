@@ -20,6 +20,8 @@ if (process.env.NODE_ENV === 'production') {
 
 const tokens = {};
 const players = {};
+const drawHistory = [];
+const chatHistory = [];
 
 
 const wsHandlers = {
@@ -32,14 +34,24 @@ const wsHandlers = {
     }
     console.log(`Identified player ${login}`);
     socket.emit(HandshakeMessage.type, {name: login});
+    drawHistory.forEach((data) => socket.emit(DrawMessage.type ,data));
+    chatHistory.forEach((data) => socket.emit(ChatMessage.type ,data));
     players[login] = {};
     delete tokens[token];
   },
   [DrawMessage.type]: (socket, data) => {
     socket.broadcast.emit(DrawMessage.type, data);
+    while(drawHistory.length >= 1000) {
+      drawHistory.shift();
+    }
+    drawHistory.push(data)
   },
   [ChatMessage.type]: (socket, data) => {
     socket.broadcast.emit(ChatMessage.type, data);
+    while(chatHistory.length >= 10) {
+      chatHistory.shift();
+    }
+    chatHistory.push(data)
   }
 };
 
