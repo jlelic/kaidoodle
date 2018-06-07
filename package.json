@@ -4,12 +4,14 @@
   "license": "MIT",
   "scripts": {
     "ng": "ng",
-    "start:client": "ng serve",
-    "start:server": "node src/server/index.js",
+    "start:client": "ng serve --proxy-config proxy.conf.json",
+    "start:server": "cross-env NODE_ENV=development node src/server",
+    "start": "cross-env NODE_ENV=production node src/server",
     "build": "ng build --prod",
     "test": "ng test",
     "lint": "ng lint",
-    "e2e": "ng e2e"
+    "e2e": "ng e2e",
+    "postinstall": "ng build --aot -prod"
   },
   "private": true,
   "dependencies": {
@@ -24,6 +26,7 @@
     "@angular/router": "^5.0.0",
     "@types/socket.io-client": "^1.4.32",
     "core-js": "^2.4.1",
+    "cross-env": "^5.1.6",
     "express": "^4.16.3",
     "rxjs": "^5.5.2",
     "socket.io": "^2.1.1",

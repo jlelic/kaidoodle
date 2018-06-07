@@ -1,4 +1,5 @@
 const uuid = require('uuid/v4');
+const path = require('path');
 const express = require('express');
 const app = express();
 const server = require('http').createServer(app);
@@ -8,6 +9,14 @@ const HandshakeMessage = require('../shared/messages/handshake-message');
 const DrawMessage = require('../shared/messages/draw-message');
 
 const messages = [HandshakeMessage, DrawMessage];
+
+const port = process.env.PORT || 3000;
+
+console.log(process.env);
+if (process.env.NODE_ENV === 'production') {
+  const distPath = path.resolve(__dirname, '../../dist');
+  app.use(express.static(distPath));
+}
 
 const tokens = {};
 const players = {};
@@ -57,7 +66,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
 
-app.post('/login', (req, res) => {
+app.post('/api/login', (req, res) => {
   console.log(req.body);
   const { login } = req.body;
   const token = uuid();
@@ -65,4 +74,4 @@ app.post('/login', (req, res) => {
   res.json({ token });
 });
 
-server.listen(3000);
+server.listen(port, () => console.log(`Game server is listening on ${port}`));

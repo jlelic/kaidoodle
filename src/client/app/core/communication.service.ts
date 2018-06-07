@@ -13,11 +13,10 @@ interface Message {
 export class CommunicationService {
 
   socket;
-  serverUrl: string;
+  serverUrl = window.location.origin;
   _incomingMessages: Subject<any>;
 
   constructor(api: ApiService) {
-    this.serverUrl = api.serverUrl;
     this._incomingMessages = new Subject();
   }
 
