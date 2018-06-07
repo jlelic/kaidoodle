@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import * as io from 'socket.io-client';
-import * as HandshakeMessage from '../../../shared/messages/handshake-message';
-import { ApiService } from "./api.service";
 import { Subject } from 'rxjs/Subject';
+import * as io from 'socket.io-client';
+
+import * as HandshakeMessage from '../../../shared/messages/handshake-message';
 
 interface Message {
   getType;
@@ -14,10 +14,11 @@ export class CommunicationService {
 
   socket;
   serverUrl = window.location.origin;
+  token: string;
   private _name: string;
   private _incomingMessages: Subject<any>;
 
-  constructor(api: ApiService) {
+  constructor() {
     this._incomingMessages = new Subject();
   }
 
@@ -29,32 +30,36 @@ export class CommunicationService {
     return this._name;
   }
 
-  init(token: string) {
+  init() {
+    if (!this.token) {
+      throw 'Token missing!'
+    }
+
     this.socket = io(this.serverUrl);
 
     const onevent = this.socket.onevent;
     this.socket.onevent = function (packet) {
       const args = packet.data || [];
-      onevent.call (this, packet);    // original call
+      onevent.call(this, packet);    // original call
       packet.data = ["*"].concat(args);
       onevent.call(this, packet);      // additional call to catch-all
     };
 
     this.socket.on('connect', () => {
       console.log('Websocket connection established.');
-      this.send(new HandshakeMessage(token))
+      this.send(new HandshakeMessage(this.token))
     });
 
-    this.socket.on([HandshakeMessage.type], ({name}) => {
+    this.socket.on([HandshakeMessage.type], ({ name }) => {
       this._name = name;
     });
 
     this.socket.on("*", (type, data) => {
-      this._incomingMessages.next({type, data});
+      this._incomingMessages.next({ type, data });
     });
   }
 
-  send(message: Message){
+  send(message: Message) {
     this.socket.emit(message.getType(), message.getPayload());
   }
 

@@ -1,6 +1,7 @@
 <div>
 {{name}}
-You're <span *ngIf="isDrawing">drawing</span><span *ngIf="!isDrawing">guessing</span>
+You're <span *ngIf="isDrawing">drawing</span><span *ngIf="!isDrawing">guessing</span> <span *ngIf="word">Word: {{word}}</span>
 </div>
 <canvas id="gameCanvas" #canvas></canvas>
+<player-list></player-list>
 <chat></chat>

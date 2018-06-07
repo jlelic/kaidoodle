@@ -29,6 +29,8 @@ export class GameComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.commmunication.init();
+
     const canvas = this.canvas.nativeElement;
     canvas.height = this.height;
     canvas.width = this.width;
@@ -39,7 +41,6 @@ export class GameComponent implements OnInit {
     this.context.fillStyle = 'white';
     this.context.fillRect(0, 0, this.width, this.height);
     const x = this.commmunication.incomingMessages.subscribe(({ type, data }) => {
-      debugger;
       if (type == DrawMessage.type) {
         this.processDrawMessage(data);
       } else if (type == StartGameMessage.type){

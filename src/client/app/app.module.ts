@@ -5,13 +5,12 @@ import { HttpClientModule } from '@angular/common/http'
 
 
 import { AppComponent } from './app.component';
-import { CommunicationService } from './core/communication.service';
 import { RouterModule, Routes } from "@angular/router";
 import { LoginComponent } from './login/login.component';
 import { GameComponent } from './game/game.component';
 import { ErrorComponent } from './error/error.component';
-import { ApiService } from './core/api.service';
 import { GameModule } from "./game/game.module";
+import { CoreModule } from './core/core.module';
 
 const appRoutes: Routes = [
   { path: '', component: LoginComponent },
@@ -27,6 +26,7 @@ const appRoutes: Routes = [
   ],
   imports: [
     BrowserModule,
+    CoreModule,
     GameModule,
     HttpClientModule,
     ReactiveFormsModule,
@@ -36,8 +36,6 @@ const appRoutes: Routes = [
     )
   ],
   providers: [
-    ApiService,
-    CommunicationService
   ],
   bootstrap: [AppComponent]
 })

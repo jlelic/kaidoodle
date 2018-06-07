@@ -39,7 +39,7 @@ export class LoginComponent implements OnInit {
     this.api.login(login)
       .subscribe(
         ({ token }) => {
-          this.communication.init(token);
+          this.communication.token = token;
           this.router.navigate(['/game'])
         },
         error => console.error(error)

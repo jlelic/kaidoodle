@@ -4,6 +4,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 
 import { GameComponent } from './game.component';
 import { ChatComponent } from './chat/chat.component';
+import { PlayerListComponent } from './player-list/player-list.component';
 
 @NgModule({
   imports: [
@@ -12,7 +13,8 @@ import { ChatComponent } from './chat/chat.component';
   ],
   declarations: [
     GameComponent,
-    ChatComponent
+    ChatComponent,
+    PlayerListComponent
   ]
 })
 export class GameModule { }

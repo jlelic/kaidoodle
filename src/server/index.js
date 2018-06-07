@@ -9,8 +9,10 @@ const HandshakeMessage = require('../shared/messages/handshake-message');
 const DrawMessage = require('../shared/messages/draw-message');
 const ChatMessage = require('../shared/messages/chat-message');
 const StartGameMessage = require('../shared/messages/start-game-message');
+const PlayerConnectedMessage = require('../shared/messages/player-connected-message');
+const PlayerDisconnectedMessage = require('../shared/messages/player-disconnected-message');
 
-const incomingMessages = [HandshakeMessage, DrawMessage, ChatMessage];
+const incomingMessages = [HandshakeMessage, DrawMessage, ChatMessage, 'disconnect'];
 
 const port = process.env.PORT || 3000;
 
@@ -53,18 +55,28 @@ const startGame = () => {
 const wsHandlers = {
   [HandshakeMessage.type]: (socket, data) => {
     const { token } = data;
-    const login = tokens[token] || 'TUTULO';
-    if (!login) {
+    const newPlayerName = tokens[token] || 'TUTULO';
+    if (!newPlayerName) {
       console.error(`Unknown player token ${token}!`);
       return;
     }
-    console.log(`Identified player ${login}`);
-    socket.emit(HandshakeMessage.type, {name: login});
+    console.log(`Identified player ${newPlayerName}`);
+    socket.emit(HandshakeMessage.type, {name: newPlayerName});
     drawHistory.forEach((data) => socket.emit(DrawMessage.type ,data));
     chatHistory.forEach((data) => socket.emit(ChatMessage.type ,data));
-    players[login] = { socket };
+    players[newPlayerName] = { socket };
 
-    if (appState == STATE_IDLE && Object.keys(players).length >= 2) {
+    const playerNames = Object.keys(players);
+
+    playerNames.forEach(oldPlayerName => {
+      if(oldPlayerName == newPlayerName) {
+        return;
+      }
+      players[oldPlayerName].socket.emit(PlayerConnectedMessage.type, {name: newPlayerName});
+      players[newPlayerName].socket.emit(PlayerConnectedMessage.type, {name: oldPlayerName});
+    });
+
+    if (appState == STATE_IDLE && playerNames.length >= 2) {
       startGame();
     }
 
@@ -83,7 +95,7 @@ const wsHandlers = {
       chatHistory.shift();
     }
     chatHistory.push(data)
-  }
+  },
 };
 
 
@@ -98,6 +110,14 @@ io.on('connection', (socket) => {
         return;
       }
       handler(socket, data);
+    });
+    socket.on('disconnect', () => {
+      Object.keys(players).forEach(name => {
+        if(players[name].socket == socket) {
+          socket.broadcast.emit(PlayerDisconnectedMessage.type, { name })
+          delete players[name];
+        }
+      })
     });
   });
 });
