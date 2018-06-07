@@ -15,6 +15,8 @@ export class GameComponent implements OnInit {
   width = 800;
   height = 600;
   isMouseDown = false;
+  prevX = null;
+  prevY = null;
 
   constructor(private commmunication: CommunicationService) {
   }
@@ -23,24 +25,34 @@ export class GameComponent implements OnInit {
     const canvas = this.canvas.nativeElement;
     canvas.height = this.height;
     canvas.width = this.width;
-    canvas.addEventListener('mousedown', () => this.onMouseDown());
+    canvas.addEventListener('mousedown', e => this.onMouseDown(e));
     canvas.addEventListener('mouseup', () => this.onMouseUp());
     canvas.addEventListener('mousemove', e => this.onMouseMove(e));
     this.context = canvas.getContext('2d');
     this.context.fillStyle = 'white';
     this.context.fillRect(0, 0, this.width, this.height);
-    const x = this.commmunication._incomingMessages.subscribe(({type, data}) => {
+    const x = this.commmunication._incomingMessages.subscribe(({ type, data }) => {
       if (type == DrawMessage.type) {
         this.processDrawMessage(data);
       }
     })
   }
 
-  onMouseDown() {
+  onMouseDown(event) {
     this.isMouseDown = true;
+    const rect = this.canvas.nativeElement.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    const message = new DrawMessage(x, y, this.prevX, this.prevY);
+    this.processDrawMessage(message.getPayload());
+    this.prevX = x;
+    this.prevY = y;
+    this.commmunication.send(message);
   }
 
   onMouseUp() {
+    this.prevX = null;
+    this.prevY = null;
     this.isMouseDown = false;
   }
 
@@ -49,15 +61,27 @@ export class GameComponent implements OnInit {
       const rect = this.canvas.nativeElement.getBoundingClientRect();
       const x = event.clientX - rect.left;
       const y = event.clientY - rect.top;
-      const message = new DrawMessage(x, y);
+      const message = new DrawMessage(x, y, this.prevX, this.prevY);
       this.processDrawMessage(message.getPayload());
+      this.prevX = x;
+      this.prevY = y;
       this.commmunication.send(message);
     }
   }
 
   processDrawMessage(data) {
-    const { x, y } = data;
     this.context.fillStyle = 'black';
-    this.context.fillRect(x - 1, y - 1, 3, 3);
+
+    let { x, y, prevX, prevY } = data;
+    if (typeof prevX !== 'number' || typeof prevY !== 'number'
+      || (x === prevX && y === prevY)) {
+      this.context.fillRect(x, y, 1, 1);
+    } else {
+      this.context.beginPath();
+      this.context.moveTo(prevX, prevY);
+      this.context.lineTo(x, y);
+      this.context.stroke();
+
+    }
   }
 }
