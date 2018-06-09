@@ -7,6 +7,6 @@
   </div>
   <form [formGroup]="form" (submit)="onSubmit($event)">
     <input type="text" formControlName="input"/>
-    <button (click)="onSubmit()">Send</button>
+    <button (click)="onSubmit($event)">Send</button>
   </form>
 </div>

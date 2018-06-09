@@ -42,7 +42,6 @@ export class ChatComponent implements OnInit {
 
   onSubmit(event) {
     event.preventDefault();
-    console.log(this.form.value);
     const { input } = this.form.value;
     const message = new ChatMessage(this.communication.name, input);
     this.processChatMessage(message.getPayload());
