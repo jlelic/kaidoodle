@@ -32,12 +32,14 @@ const chatHistory = [];
 
 let appState = STATE_IDLE;
 let drawingPlayerName = '';
+let word;
+let wordHint;
 
 const startGame = () => {
-  const word = 'kai';
-  const wordHint = word.replace(/./g,'_ ');
+  word = 'kai';
+  wordHint = word.replace(/./g, '_ ');
   const playerNames = Object.keys(players);
-  drawingPlayerName = playerNames[Math.floor(Math.random()*playerNames.length)];
+  drawingPlayerName = playerNames[Math.floor(Math.random() * playerNames.length)];
   playerNames.forEach(name => {
     const message = new StartGameMessage(
       drawingPlayerName,
@@ -58,15 +60,17 @@ const wsHandlers = {
       return;
     }
     console.log(`Identified player ${newPlayerName}`);
-    socket.emit(HandshakeMessage.type, {name: newPlayerName});
-    drawHistory.forEach((data) => socket.emit(DrawMessage.type ,data));
-    chatHistory.forEach((data) => socket.emit(ChatMessage.type ,data));
+    socket.emit(HandshakeMessage.type, { name: newPlayerName });
+    drawHistory.forEach((data) => socket.emit(DrawMessage.type, data));
+    chatHistory.forEach((data) => socket.emit(ChatMessage.type, data));
     players[newPlayerName] = { socket, score: 0 };
 
     const playerNames = Object.keys(players);
 
+    socket.emit(StartGameMessage.type, new StartGameMessage(drawingPlayerName, wordHint).getPayload());
+
     playerNames.forEach(oldPlayerName => {
-      if(oldPlayerName == newPlayerName) {
+      if (oldPlayerName == newPlayerName) {
         return;
       }
       const score = players[oldPlayerName].score;
@@ -82,14 +86,14 @@ const wsHandlers = {
   },
   [DrawMessage.type]: (socket, data) => {
     socket.broadcast.emit(DrawMessage.type, data);
-    while(drawHistory.length >= 1000) {
+    while (drawHistory.length >= 1000) {
       drawHistory.shift();
     }
     drawHistory.push(data)
   },
   [ChatMessage.type]: (socket, data) => {
     socket.broadcast.emit(ChatMessage.type, data);
-    while(chatHistory.length >= 10) {
+    while (chatHistory.length >= 10) {
       chatHistory.shift();
     }
     chatHistory.push(data)
@@ -103,7 +107,7 @@ io.on('connection', (socket) => {
     socket.on(msg.type, data => {
       console.log(`${msg.type}: ${JSON.stringify(data)}`);
       const handler = wsHandlers[msg.type];
-      if(!handler){
+      if (!handler) {
         console.warn(`No websocket handler for ${msg.type} message type!`);
         return;
       }
@@ -111,7 +115,7 @@ io.on('connection', (socket) => {
     });
     socket.on('disconnect', () => {
       Object.keys(players).forEach(name => {
-        if(players[name].socket == socket) {
+        if (players[name].socket == socket) {
           socket.broadcast.emit(PlayerDisconnectedMessage.type, { name });
           delete players[name];
           console.log(`Player ${name} disconnected!`)
