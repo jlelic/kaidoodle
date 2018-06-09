@@ -13,6 +13,7 @@ const ChatMessage = require('../shared/messages/chat-message');
 const StartGameMessage = require('../shared/messages/start-game-message');
 const PlayerMessage = require('../shared/messages/player-message');
 const PlayerDisconnectedMessage = require('../shared/messages/player-disconnected-message');
+const TimerMessage = require('../shared/messages/timer-message');
 
 const incomingMessages = [HandshakeMessage, DrawMessage, ChatMessage, 'disconnect'];
 
@@ -38,9 +39,13 @@ let appState = STATE_IDLE;
 let drawingPlayerName = '';
 let word;
 let wordHint;
+let startGameTime;
+let guessingTime;
+let timerUpdate;
 
 const startGame = () => {
-  word = WORDS[Math.floor(Math.random()*WORDS.length)];
+  clearTimeout(timerUpdate);
+  word = WORDS[Math.floor(Math.random() * WORDS.length)];
   wordHint = word.replace(/[a-zA-Z]/g, '_ ');
   const playerNames = Object.keys(players);
   drawingPlayerName = playerNames[Math.floor(Math.random() * playerNames.length)];
@@ -53,6 +58,9 @@ const startGame = () => {
     players[name].socket.emit(message.getType(), message.getPayload());
   });
   io.sockets.emit(ChatMessage.type, new ChatMessage(SERVER_NAME, `${drawingPlayerName} is drawing now!`).getPayload());
+  guessingTime = 90;
+  startGameTime = getUnixTime();
+  updateTimer();
   console.log(`Starting game, word: ${word}, player ${drawingPlayerName} drawing`);
   appState = STATE_PLAYING;
 };
@@ -65,6 +73,21 @@ const checkGameFinished = () => {
     }
   });
   return finished;
+};
+
+const getUnixTime = () => {
+  return Math.round((new Date()).getTime() / 1000);
+};
+
+const updateTimer = () => {
+  const remainingTime = startGameTime + guessingTime - getUnixTime();
+  if (remainingTime < 0) {
+    io.sockets.emit(ChatMessage.type, new ChatMessage(SERVER_NAME, `Round over, the word was "${word}"`).getPayload());
+    startGame();
+  } else {
+    io.sockets.emit(TimerMessage.type, new TimerMessage(remainingTime).getPayload());
+    timerUpdate = setTimeout(() => updateTimer(), 1000)
+  }
 };
 
 const wsHandlers = {
@@ -103,7 +126,7 @@ const wsHandlers = {
     delete tokens[token];
   },
   [DrawMessage.type]: (socket, data, playerName) => {
-    if (appState == STATE_PLAYING && playerName!== drawingPlayerName) {
+    if (appState == STATE_PLAYING && playerName !== drawingPlayerName) {
       return;
     }
     socket.broadcast.emit(DrawMessage.type, data);
@@ -172,7 +195,7 @@ io.on('connection', (socket) => {
           }
           return;
         }
-        if(checkGameFinished()){
+        if (checkGameFinished()) {
           startGame();
         }
       })

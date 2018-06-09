@@ -3,6 +3,7 @@ import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { CommunicationService } from '../core/communication.service';
 import * as DrawMessage from '../../../shared/messages/draw-message';
 import * as StartGameMessage from '../../../shared/messages/start-game-message';
+import * as TimerMessge from '../../../shared/messages/timer-message';
 import { PlayersService } from '../core/players.service';
 
 @Component({
@@ -20,6 +21,7 @@ export class GameComponent implements OnInit {
   prevX = null;
   prevY = null;
   word = '';
+  time = 0;
   thickness = 1;
   erasing = false;
 
@@ -52,6 +54,8 @@ export class GameComponent implements OnInit {
       } else if (type == StartGameMessage.type) {
         this.clearCanvas();
         this.word = data.word;
+      } else if (type == TimerMessge.type) {
+        this.time = data.time;
       }
     })
   }
