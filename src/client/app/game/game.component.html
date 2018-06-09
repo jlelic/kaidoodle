@@ -6,7 +6,21 @@
   </div>
   <div id="gameContainer">
     <player-list></player-list>
+    <span>
     <canvas id="gameCanvas" #canvas></canvas>
+      <span>
+        Thickness:
+          <mat-slider
+            min="1"
+            max="33"
+            step="4"
+            [(ngModel)]="thickness"
+          >
+          </mat-slider>
+       Eraser:
+        <mat-slide-toggle [(ngModel)]="erasing"></mat-slide-toggle>
+      </span>
+    </span>
     <chat></chat>
   </div>
 </div>

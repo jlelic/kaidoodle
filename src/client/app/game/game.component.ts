@@ -20,12 +20,14 @@ export class GameComponent implements OnInit {
   prevX = null;
   prevY = null;
   word = '';
+  thickness = 1;
+  erasing = false;
 
-  constructor(private commmunication: CommunicationService, private players: PlayersService) {
+  constructor(private communication: CommunicationService, private players: PlayersService) {
   }
 
   get name() {
-    return this.commmunication.name;
+    return this.communication.name;
   }
 
   get drawingPlayerName() {
@@ -33,7 +35,7 @@ export class GameComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.commmunication.init();
+    this.communication.init();
 
     const canvas = this.canvas.nativeElement;
     canvas.height = this.height;
@@ -44,10 +46,10 @@ export class GameComponent implements OnInit {
     this.context = canvas.getContext('2d');
     this.context.imageSmoothingEnabled = false;
     this.clearCanvas();
-    const x = this.commmunication.incomingMessages.subscribe(({ type, data }) => {
+    const x = this.communication.incomingMessages.subscribe(({ type, data }) => {
       if (type == DrawMessage.type) {
         this.processDrawMessage(data);
-      } else if (type == StartGameMessage.type){
+      } else if (type == StartGameMessage.type) {
         this.clearCanvas();
         this.word = data.word;
       }
@@ -60,15 +62,25 @@ export class GameComponent implements OnInit {
   }
 
   onMouseDown(event) {
+    if(this.communication.name !== this.players.drawing) {
+      return;
+    }
     this.isMouseDown = true;
     const rect = this.canvas.nativeElement.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
-    const message = new DrawMessage('pen', x, y, this.prevX, this.prevY);
+    const message = new DrawMessage(
+      this.erasing ? 'eraser' : 'pen',
+      this.thickness,
+      x,
+      y,
+      x,
+      y
+    );
     this.processDrawMessage(message.getPayload());
     this.prevX = x;
     this.prevY = y;
-    this.commmunication.send(message);
+    this.communication.send(message);
   }
 
   onMouseUp() {
@@ -79,29 +91,40 @@ export class GameComponent implements OnInit {
 
   onMouseMove(event: MouseEvent) {
     if (this.isMouseDown) {
-      if(this.commmunication.name !== this.players.drawing) {
+      if(this.communication.name !== this.players.drawing) {
         return;
       }
       const rect = this.canvas.nativeElement.getBoundingClientRect();
       const x = event.clientX - rect.left;
       const y = event.clientY - rect.top;
-      const message = new DrawMessage('pen', x, y, this.prevX, this.prevY);
+      const message = new DrawMessage(
+        this.erasing ? 'eraser' : 'pen',
+        this.thickness,
+        x,
+        y,
+        this.prevX,
+        this.prevY
+      );
       this.processDrawMessage(message.getPayload());
       this.prevX = x;
       this.prevY = y;
-      this.commmunication.send(message);
+      this.communication.send(message);
     }
   }
 
   processDrawMessage(data) {
-    this.context.fillStyle = 'black';
-
-    let { x, y, prevX, prevY } = data;
+    this.context.strokeStyle = data.tool == 'pen' ? 'black' : 'white';
+    console.log(this.context.fillStyle);
+    let { x, y, prevX, prevY, thickness } = data;
     if (typeof prevX !== 'number' || typeof prevY !== 'number'
       || (x === prevX && y === prevY)) {
-      this.context.fillRect(x, y, 1, 1);
+      this.context.beginPath();
+      this.context.ellipse(x-thickness, y, thickness, thickness, 0, 0, 0);
+      this.context.stroke();
     } else {
       this.context.beginPath();
+      this.context.lineWidth = thickness;
+      this.context.lineCap = 'round';
       this.context.moveTo(prevX, prevY);
       this.context.lineTo(x, y);
       this.context.stroke();
