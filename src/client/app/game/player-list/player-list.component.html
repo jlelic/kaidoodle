@@ -1,6 +1,7 @@
 <ul id="playerList">
   <li class="playerListEntry" *ngFor="let player of players">{{player.name}}
     <span *ngIf="player.name == drawingPlayerName">(drawing)</span>
+    <span *ngIf="player.guessed">(guessed)</span>
     - {{player.score}}
   </li>
 </ul>

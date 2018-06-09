@@ -9,7 +9,7 @@ const HandshakeMessage = require('../shared/messages/handshake-message');
 const DrawMessage = require('../shared/messages/draw-message');
 const ChatMessage = require('../shared/messages/chat-message');
 const StartGameMessage = require('../shared/messages/start-game-message');
-const NewPlayerMessage = require('../shared/messages/new-player-message');
+const PlayerMessage = require('../shared/messages/player-message');
 const PlayerDisconnectedMessage = require('../shared/messages/player-disconnected-message');
 
 const incomingMessages = [HandshakeMessage, DrawMessage, ChatMessage, 'disconnect'];
@@ -24,6 +24,8 @@ if (process.env.NODE_ENV === 'production') {
 const STATE_IDLE = 'IDLE';
 const STATE_PLAYING = 'PLAYING';
 const STATE_COOLDOWN = 'COOLDOWN';
+
+const SERVER_NAME = 'Server';
 
 const tokens = {};
 const players = {};
@@ -45,10 +47,22 @@ const startGame = () => {
       drawingPlayerName,
       name === drawingPlayerName ? word : wordHint
     );
+    players[name].guessed = false;
     players[name].socket.emit(message.getType(), message.getPayload());
   });
+  io.sockets.emit(ChatMessage.type, new ChatMessage(SERVER_NAME, `${drawingPlayerName} is drawing now!`).getPayload());
   console.log(`Starting game, word: ${word}, player ${drawingPlayerName} drawing`);
   appState = STATE_PLAYING;
+};
+
+const checkGameFinished = () => {
+  let finished = true;
+  Object.keys(players).forEach(name => {
+    if (!players[name].guessed && name != drawingPlayerName) {
+      finished = false;
+    }
+  });
+  return finished;
 };
 
 const wsHandlers = {
@@ -63,7 +77,7 @@ const wsHandlers = {
     socket.emit(HandshakeMessage.type, { name: newPlayerName });
     drawHistory.forEach((data) => socket.emit(DrawMessage.type, data));
     chatHistory.forEach((data) => socket.emit(ChatMessage.type, data));
-    players[newPlayerName] = { socket, score: 0 };
+    players[newPlayerName] = { socket, score: 0, guessed: false };
 
     const playerNames = Object.keys(players);
 
@@ -76,8 +90,8 @@ const wsHandlers = {
         return;
       }
       const score = players[oldPlayerName].score;
-      players[oldPlayerName].socket.emit(NewPlayerMessage.type, new NewPlayerMessage(newPlayerName, 0).getPayload());
-      players[newPlayerName].socket.emit(NewPlayerMessage.type, new NewPlayerMessage(oldPlayerName, score).getPayload());
+      players[oldPlayerName].socket.emit(PlayerMessage.type, new PlayerMessage(newPlayerName, players[oldPlayerName]).getPayload());
+      players[newPlayerName].socket.emit(PlayerMessage.type, new PlayerMessage(oldPlayerName, players[newPlayerName]).getPayload());
     });
 
     if (appState == STATE_IDLE && playerNames.length >= 2) {
@@ -93,9 +107,24 @@ const wsHandlers = {
     }
     drawHistory.push(data)
   },
-  [ChatMessage.type]: (socket, data) => {
+  [ChatMessage.type]: (socket, data, playerName) => {
+    if (playerName !== data.sender) {
+      console.error(`${playerName} is trying to send chat message under name ${data.sender}`);
+    }
+    data.sender = playerName;
+    if (appState == STATE_PLAYING && playerName != drawingPlayerName && data.text.toLowerCase() === word.toLowerCase()) {
+      socket.emit(ChatMessage.type, new ChatMessage(SERVER_NAME, 'You guessed the word!').getPayload());
+      socket.broadcast.emit(ChatMessage.type, new ChatMessage(SERVER_NAME, `${data.sender} guessed the word!`).getPayload());
+      players[playerName].guessed = true;
+      players[playerName].score += 100;
+      io.sockets.emit(PlayerMessage.type, new PlayerMessage(playerName, players[playerName]).getPayload());
+      if (checkGameFinished()) {
+        startGame();
+      }
+      return;
+    }
     socket.broadcast.emit(ChatMessage.type, data);
-    while (chatHistory.length >= 10) {
+    while (chatHistory.length >= 20) {
       chatHistory.shift();
     }
     chatHistory.push(data)
@@ -113,7 +142,13 @@ io.on('connection', (socket) => {
         console.warn(`No websocket handler for ${msg.type} message type!`);
         return;
       }
-      handler(socket, data);
+      let playerName;
+      Object.keys(players).forEach(name => {
+        if (players[name].socket === socket) {
+          playerName = name;
+        }
+      });
+      handler(socket, data, playerName);
     });
     socket.on('disconnect', () => {
       const playerNames = Object.keys(players);
@@ -121,15 +156,19 @@ io.on('connection', (socket) => {
         if (players[name].socket == socket) {
           socket.broadcast.emit(PlayerDisconnectedMessage.type, { name });
           delete players[name];
-          console.log(`Player ${name} disconnected!`)
+          console.log(`Player ${name} disconnected!`);
 
           if (name === drawingPlayerName) {
-            if(playerNames.length == 1){
+            if (playerNames.length == 1) {
               appState = STATE_IDLE;
             } else {
               startGame();
             }
           }
+          return;
+        }
+        if(checkGameFinished()){
+          startGame();
         }
       })
     });

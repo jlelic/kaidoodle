@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 
 import { CommunicationService } from './communication.service';
 import * as HandshakeMessage from '../../../shared/messages/handshake-message';
-import * as NewPlayerMessage from '../../../shared/messages/new-player-message';
+import * as PlayerMessage from '../../../shared/messages/player-message';
 import * as PlayerDisconnectedMessage from '../../../shared/messages/player-disconnected-message';
 import * as StartGameMessage from '../../../shared/messages/start-game-message';
 
@@ -13,20 +13,35 @@ export class PlayersService {
   private _drawing = null;
 
   constructor(private communication: CommunicationService) {
-    this.communication.incomingMessages.subscribe(({type, data}) => {
-      switch(type){
+    this.communication.incomingMessages.subscribe(({ type, data }) => {
+      switch (type) {
         case HandshakeMessage.type:
           this._players.push({ name: data.name, score: 0 });
           break;
-        case NewPlayerMessage.type:
-          this._players.push({ name: data.name, score: data.score });
+        case PlayerMessage.type:
+          let updatedPlayer = false;
+          this._players.forEach((player, index) => {
+            if (updatedPlayer) {
+              return
+            }
+            if (player.name == data.name) {
+              this.updatePlayerData(this._players[index], data);
+              updatedPlayer = true
+            }
+          });
+          if (!updatedPlayer) {
+            const newPlayer = {};
+            this.updatePlayerData(newPlayer, data);
+            this._players.push(newPlayer);
+          }
           break;
         case PlayerDisconnectedMessage.type:
-          const index = this._players.findIndex(({name}) => name == data.name);
+          const index = this._players.findIndex(({ name }) => name == data.name);
           this._players.splice(index, 1);
           break;
         case StartGameMessage.type:
           this._drawing = data.drawing;
+          this._players.forEach(player => player.guessed = false);
           break;
       }
     })
@@ -40,4 +55,12 @@ export class PlayersService {
     return this._drawing;
   }
 
+  private updatePlayerData(player, data){
+    Object.keys(data).forEach(key => {
+      if(typeof data[key] === 'undefined') {
+        return;
+      }
+      player[key] = data[key];
+    });
+  }
 }
