@@ -111,8 +111,9 @@ io.on('connection', (socket) => {
     socket.on('disconnect', () => {
       Object.keys(players).forEach(name => {
         if(players[name].socket == socket) {
-          socket.broadcast.emit(PlayerDisconnectedMessage.type, { name })
+          socket.broadcast.emit(PlayerDisconnectedMessage.type, { name });
           delete players[name];
+          console.log(`Player ${name} disconnected!`)
         }
       })
     });

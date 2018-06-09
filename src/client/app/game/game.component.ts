@@ -3,6 +3,7 @@ import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { CommunicationService } from '../core/communication.service';
 import * as DrawMessage from '../../../shared/messages/draw-message';
 import * as StartGameMessage from '../../../shared/messages/start-game-message';
+import { PlayersService } from '../core/players.service';
 
 @Component({
   selector: 'app-game',
@@ -19,13 +20,16 @@ export class GameComponent implements OnInit {
   prevX = null;
   prevY = null;
   word = '';
-  drawingPlayerName = false;
 
-  constructor(private commmunication: CommunicationService) {
+  constructor(private commmunication: CommunicationService, private players: PlayersService) {
   }
 
   get name() {
     return this.commmunication.name;
+  }
+
+  get drawingPlayerName() {
+    return this.players.drawing;
   }
 
   ngOnInit() {
@@ -39,16 +43,20 @@ export class GameComponent implements OnInit {
     canvas.addEventListener('mousemove', e => this.onMouseMove(e));
     this.context = canvas.getContext('2d');
     this.context.imageSmoothingEnabled = false;
-    this.context.fillStyle = 'white';
-    this.context.fillRect(0, 0, this.width, this.height);
+    this.clearCanvas();
     const x = this.commmunication.incomingMessages.subscribe(({ type, data }) => {
       if (type == DrawMessage.type) {
         this.processDrawMessage(data);
       } else if (type == StartGameMessage.type){
+        this.clearCanvas();
         this.word = data.word;
-        this.drawingPlayerName = data.drawing;
       }
     })
+  }
+
+  clearCanvas() {
+    this.context.fillStyle = 'white';
+    this.context.fillRect(0, 0, this.width, this.height);
   }
 
   onMouseDown(event) {
@@ -56,7 +64,7 @@ export class GameComponent implements OnInit {
     const rect = this.canvas.nativeElement.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
-    const message = new DrawMessage(x, y, this.prevX, this.prevY);
+    const message = new DrawMessage('pen', x, y, this.prevX, this.prevY);
     this.processDrawMessage(message.getPayload());
     this.prevX = x;
     this.prevY = y;
@@ -74,7 +82,7 @@ export class GameComponent implements OnInit {
       const rect = this.canvas.nativeElement.getBoundingClientRect();
       const x = event.clientX - rect.left;
       const y = event.clientY - rect.top;
-      const message = new DrawMessage(x, y, this.prevX, this.prevY);
+      const message = new DrawMessage('pen', x, y, this.prevX, this.prevY);
       this.processDrawMessage(message.getPayload());
       this.prevX = x;
       this.prevY = y;

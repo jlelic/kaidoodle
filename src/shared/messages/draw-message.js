@@ -1,7 +1,7 @@
 class Message {
 
-  constructor(x, y, prevX, prevY) {
-    this.payload = {x, y, prevX, prevY};
+  constructor(tool, x, y, prevX, prevY) {
+    this.payload = {tool, x, y, prevX, prevY};
   }
 
   static get type(){
