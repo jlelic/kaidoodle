@@ -39,13 +39,10 @@ const startGame = () => {
   const playerNames = Object.keys(players);
   drawingPlayerName = playerNames[Math.floor(Math.random()*playerNames.length)];
   playerNames.forEach(name => {
-    let message;
-    if (name == drawingPlayerName) {
-      message = new StartGameMessage(true, word);
-
-    } else {
-      message = new StartGameMessage(false, wordHint);
-    }
+    const message = new StartGameMessage(
+      drawingPlayerName,
+      name === drawingPlayerName ? word : wordHint
+    );
     players[name].socket.emit(message.getType(), message.getPayload());
   });
   console.log(`Starting game, word: ${word}, player ${drawingPlayerName} drawing`);

@@ -19,7 +19,7 @@ export class GameComponent implements OnInit {
   prevX = null;
   prevY = null;
   word = '';
-  isDrawing = false;
+  drawingPlayerName = false;
 
   constructor(private commmunication: CommunicationService) {
   }
@@ -45,7 +45,7 @@ export class GameComponent implements OnInit {
         this.processDrawMessage(data);
       } else if (type == StartGameMessage.type){
         this.word = data.word;
-        this.isDrawing = data.drawing;
+        this.drawingPlayerName = data.drawing;
       }
     })
   }
