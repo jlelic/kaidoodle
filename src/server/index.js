@@ -5,6 +5,8 @@ const app = express();
 const server = require('http').createServer(app);
 const io = require('socket.io')(server);
 
+const WORDS = require('./words');
+
 const HandshakeMessage = require('../shared/messages/handshake-message');
 const DrawMessage = require('../shared/messages/draw-message');
 const ChatMessage = require('../shared/messages/chat-message');
@@ -38,8 +40,8 @@ let word;
 let wordHint;
 
 const startGame = () => {
-  word = 'kai';
-  wordHint = word.replace(/./g, '_ ');
+  word = WORDS[Math.floor(Math.random()*WORDS.length)];
+  wordHint = word.replace(/[a-zA-Z]/g, '_ ');
   const playerNames = Object.keys(players);
   drawingPlayerName = playerNames[Math.floor(Math.random() * playerNames.length)];
   playerNames.forEach(name => {
