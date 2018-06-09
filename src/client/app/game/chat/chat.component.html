@@ -1,6 +1,6 @@
 <div id="chatWindow">
   <div id="chatHeader">Chat:</div>
-  <div id="chatHistory">
+  <div id="chatHistory" #chatHistory>
   <span class="chatMessage" *ngFor="let message of messages">
     <strong>{{message.sender}}:</strong> {{message.text}}
   </span>
