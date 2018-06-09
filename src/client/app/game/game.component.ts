@@ -116,6 +116,7 @@ export class GameComponent implements OnInit {
     this.context.strokeStyle = data.tool == 'pen' ? 'black' : 'white';
     console.log(this.context.fillStyle);
     let { x, y, prevX, prevY, thickness } = data;
+    this.context.lineWidth = thickness;
     if (typeof prevX !== 'number' || typeof prevY !== 'number'
       || (x === prevX && y === prevY)) {
       this.context.beginPath();
@@ -123,7 +124,6 @@ export class GameComponent implements OnInit {
       this.context.stroke();
     } else {
       this.context.beginPath();
-      this.context.lineWidth = thickness;
       this.context.lineCap = 'round';
       this.context.moveTo(prevX, prevY);
       this.context.lineTo(x, y);
