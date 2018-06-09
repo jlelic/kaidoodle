@@ -46,7 +46,8 @@ let timerUpdate;
 const startGame = () => {
   clearTimeout(timerUpdate);
   word = WORDS[Math.floor(Math.random() * WORDS.length)];
-  wordHint = word.replace(/[a-zA-Z]/g, '_ ');
+  wordHint = word.replace(/[ ]/g, '\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0');
+  wordHint = wordHint.replace(/[a-zA-Z]/g, '＿ ');
   const playerNames = Object.keys(players);
   drawingPlayerName = playerNames[Math.floor(Math.random() * playerNames.length)];
   playerNames.forEach(name => {
