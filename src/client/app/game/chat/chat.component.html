@@ -1,8 +1,12 @@
 <div id="chatWindow">
-  <div *ngFor="let message of messages">
+  <div id="chatHeader">Chat:</div>
+  <div id="chatHistory">
+  <span class="chatMessage" *ngFor="let message of messages">
     <strong>{{message.sender}}:</strong> {{message.text}}
+  </span>
   </div>
+  <form [formGroup]="form" (submit)="onSubmit($event)">
+    <input type="text" formControlName="input"/>
+    <button (click)="onSubmit()">Send</button>
+  </form>
 </div>
-<form [formGroup]="form" (submit)="onSubmit($event)">
-  <input type="text" formControlName="input" />
-</form>

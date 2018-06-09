@@ -1,0 +1,18 @@
+#game {
+  display: flex;
+  flex-flow: column;
+}
+
+#gameCanvas {
+  display: inline-block;
+}
+
+#gameContainer {
+  flex: 0 1 auto;
+  flex-flow: row;
+  display: inline-flex;
+}
+
+#gameHeader {
+  flex: 0 1 40px;
+}

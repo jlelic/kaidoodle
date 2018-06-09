@@ -38,6 +38,7 @@ export class GameComponent implements OnInit {
     canvas.addEventListener('mouseup', () => this.onMouseUp());
     canvas.addEventListener('mousemove', e => this.onMouseMove(e));
     this.context = canvas.getContext('2d');
+    this.context.imageSmoothingEnabled = false;
     this.context.fillStyle = 'white';
     this.context.fillRect(0, 0, this.width, this.height);
     const x = this.commmunication.incomingMessages.subscribe(({ type, data }) => {

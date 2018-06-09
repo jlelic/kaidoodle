@@ -1,3 +1,25 @@
-#chatWindow{
+#chatHeader {
+  flex: 0 1 auto;
+}
+
+#chatWindow {
+  vertical-align: top;
   background-color: white;
+  flex-flow: column;
+  flex: 0 1 auto;
+  display: inline-flex;
+  min-width: 240px;
+  width: 240px;
+  height: 600px;
+}
+
+#chatHistory{
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.chatMessage {
+  flex: 0 1 40px;
+  display: inherit;
 }

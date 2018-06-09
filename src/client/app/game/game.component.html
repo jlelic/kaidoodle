@@ -1,8 +1,12 @@
-<div>
-{{name}}
-<span *ngIf="drawingPlayerName">{{drawingPlayerName}} is drawing</span>
-  <span *ngIf="word">Word: {{word}}</span>
+<div id="game">
+  <div id="gameHeader">
+    {{name}}
+    | <span *ngIf="drawingPlayerName">{{drawingPlayerName}} is drawing</span>
+    | <span *ngIf="word">Word: {{word}}</span>
+  </div>
+  <div id="gameContainer">
+    <player-list></player-list>
+    <canvas id="gameCanvas" #canvas></canvas>
+    <chat></chat>
+  </div>
 </div>
-<canvas id="gameCanvas" #canvas></canvas>
-<player-list></player-list>
-<chat></chat>

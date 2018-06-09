@@ -1,0 +1,11 @@
+#playerList {
+  display: inline-block;
+  min-width: 240px;
+  width: 240px;
+  flex: 0 1 auto;
+}
+
+.playerListEntry {
+  display: inline-block;
+  width: 240px;
+}
