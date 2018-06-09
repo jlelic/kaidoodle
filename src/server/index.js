@@ -9,7 +9,7 @@ const HandshakeMessage = require('../shared/messages/handshake-message');
 const DrawMessage = require('../shared/messages/draw-message');
 const ChatMessage = require('../shared/messages/chat-message');
 const StartGameMessage = require('../shared/messages/start-game-message');
-const PlayerConnectedMessage = require('../shared/messages/player-connected-message');
+const NewPlayerMessage = require('../shared/messages/new-player-message');
 const PlayerDisconnectedMessage = require('../shared/messages/player-disconnected-message');
 
 const incomingMessages = [HandshakeMessage, DrawMessage, ChatMessage, 'disconnect'];
@@ -61,7 +61,7 @@ const wsHandlers = {
     socket.emit(HandshakeMessage.type, {name: newPlayerName});
     drawHistory.forEach((data) => socket.emit(DrawMessage.type ,data));
     chatHistory.forEach((data) => socket.emit(ChatMessage.type ,data));
-    players[newPlayerName] = { socket };
+    players[newPlayerName] = { socket, score: 0 };
 
     const playerNames = Object.keys(players);
 
@@ -69,8 +69,9 @@ const wsHandlers = {
       if(oldPlayerName == newPlayerName) {
         return;
       }
-      players[oldPlayerName].socket.emit(PlayerConnectedMessage.type, {name: newPlayerName});
-      players[newPlayerName].socket.emit(PlayerConnectedMessage.type, {name: oldPlayerName});
+      const score = players[oldPlayerName].score;
+      players[oldPlayerName].socket.emit(NewPlayerMessage.type, new NewPlayerMessage(newPlayerName, 0).getPayload());
+      players[newPlayerName].socket.emit(NewPlayerMessage.type, new NewPlayerMessage(oldPlayerName, score).getPayload());
     });
 
     if (appState == STATE_IDLE && playerNames.length >= 2) {

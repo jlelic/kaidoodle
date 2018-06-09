@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 
 import { CommunicationService } from './communication.service';
 import * as HandshakeMessage from '../../../shared/messages/handshake-message';
-import * as PlayerConnectedMessage from '../../../shared/messages/player-connected-message';
+import * as NewPlayerMessage from '../../../shared/messages/new-player-message';
 import * as PlayerDisconnectedMessage from '../../../shared/messages/player-disconnected-message';
 import * as StartGameMessage from '../../../shared/messages/start-game-message';
 
@@ -16,10 +16,10 @@ export class PlayersService {
     this.communication.incomingMessages.subscribe(({type, data}) => {
       switch(type){
         case HandshakeMessage.type:
-          this._players.push({ name: data.name });
+          this._players.push({ name: data.name, score: 0 });
           break;
-        case PlayerConnectedMessage.type:
-          this._players.push({ name: data.name });
+        case NewPlayerMessage.type:
+          this._players.push({ name: data.name, score: data.score });
           break;
         case PlayerDisconnectedMessage.type:
           const index = this._players.findIndex(({name}) => name == data.name);

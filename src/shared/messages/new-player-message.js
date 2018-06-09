@@ -1,11 +1,11 @@
 class Message {
 
-  constructor(name) {
-    this.payload = { name };
+  constructor(name, score) {
+    this.payload = { name, score };
   }
 
   static get type(){
-    return 'player-connected';
+    return 'new-player';
   }
 
   getType() {
