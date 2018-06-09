@@ -67,7 +67,9 @@ const wsHandlers = {
 
     const playerNames = Object.keys(players);
 
-    socket.emit(StartGameMessage.type, new StartGameMessage(drawingPlayerName, wordHint).getPayload());
+    if (appState == STATE_PLAYING) {
+      socket.emit(StartGameMessage.type, new StartGameMessage(drawingPlayerName, wordHint).getPayload());
+    }
 
     playerNames.forEach(oldPlayerName => {
       if (oldPlayerName == newPlayerName) {
@@ -114,11 +116,20 @@ io.on('connection', (socket) => {
       handler(socket, data);
     });
     socket.on('disconnect', () => {
-      Object.keys(players).forEach(name => {
+      const playerNames = Object.keys(players);
+      playerNames.forEach(name => {
         if (players[name].socket == socket) {
           socket.broadcast.emit(PlayerDisconnectedMessage.type, { name });
           delete players[name];
           console.log(`Player ${name} disconnected!`)
+
+          if (name === drawingPlayerName) {
+            if(playerNames.length == 1){
+              appState = STATE_IDLE;
+            } else {
+              startGame();
+            }
+          }
         }
       })
     });
