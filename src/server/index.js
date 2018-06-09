@@ -100,7 +100,10 @@ const wsHandlers = {
 
     delete tokens[token];
   },
-  [DrawMessage.type]: (socket, data) => {
+  [DrawMessage.type]: (socket, data, playerName) => {
+    if (appState == STATE_PLAYING && playerName!== drawingPlayerName) {
+      return;
+    }
     socket.broadcast.emit(DrawMessage.type, data);
     while (drawHistory.length >= 1000) {
       drawHistory.shift();
@@ -136,7 +139,7 @@ io.on('connection', (socket) => {
   console.log('New websocket connection.');
   incomingMessages.forEach(msg => {
     socket.on(msg.type, data => {
-      console.log(`${msg.type}: ${JSON.stringify(data)}`);
+      // console.log(`${msg.type}: ${JSON.stringify(data)}`);
       const handler = wsHandlers[msg.type];
       if (!handler) {
         console.warn(`No websocket handler for ${msg.type} message type!`);

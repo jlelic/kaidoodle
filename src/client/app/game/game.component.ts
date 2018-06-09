@@ -79,6 +79,9 @@ export class GameComponent implements OnInit {
 
   onMouseMove(event: MouseEvent) {
     if (this.isMouseDown) {
+      if(this.commmunication.name !== this.players.drawing) {
+        return;
+      }
       const rect = this.canvas.nativeElement.getBoundingClientRect();
       const x = event.clientX - rect.left;
       const y = event.clientY - rect.top;
