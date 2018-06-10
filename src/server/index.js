@@ -39,12 +39,11 @@ let appState = STATE_IDLE;
 let drawingPlayerName = '';
 let word;
 let wordHint;
-let startGameTime;
 let guessingTime;
-let timerUpdate;
+let timerUpdateInterval;
 
 const startGame = () => {
-  clearTimeout(timerUpdate);
+  clearInterval(timerUpdateInterval);
   word = WORDS[Math.floor(Math.random() * WORDS.length)];
   wordHint = word.replace(/[ ]/g, '\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0');
   wordHint = wordHint.replace(/[a-zA-Z]/g, '＿ ');
@@ -60,8 +59,17 @@ const startGame = () => {
   });
   io.sockets.emit(ChatMessage.type, new ChatMessage(SERVER_NAME, `${drawingPlayerName} is drawing now!`).getPayload());
   guessingTime = 90;
-  startGameTime = getUnixTime();
-  updateTimer();
+  timerUpdateInterval = startTimer(
+    (elapsedTime) => {
+      const remainingTime = guessingTime - elapsedTime;
+      io.sockets.emit(TimerMessage.type, new TimerMessage(remainingTime).getPayload());
+      return remainingTime < 0;
+    },
+    () => {
+      io.sockets.emit(ChatMessage.type, new ChatMessage(SERVER_NAME, `Round over, the word was "${word}"`).getPayload());
+      startGame();
+    }
+  );
   console.log(`Starting game, word: ${word}, player ${drawingPlayerName} drawing`);
   appState = STATE_PLAYING;
 };
@@ -80,15 +88,17 @@ const getUnixTime = () => {
   return Math.round((new Date()).getTime() / 1000);
 };
 
-const updateTimer = () => {
-  const remainingTime = startGameTime + guessingTime - getUnixTime();
-  if (remainingTime < 0) {
-    io.sockets.emit(ChatMessage.type, new ChatMessage(SERVER_NAME, `Round over, the word was "${word}"`).getPayload());
-    startGame();
-  } else {
-    io.sockets.emit(TimerMessage.type, new TimerMessage(remainingTime).getPayload());
-    timerUpdate = setTimeout(() => updateTimer(), 1000)
-  }
+const startTimer = (updateCallback, doneCallback) => {
+  const startTime = getUnixTime();
+  updateCallback(0);
+  const intervalId = setInterval(() => {
+      if (updateCallback(getUnixTime() - startTime)) {
+        doneCallback();
+        clearInterval(intervalId);
+      }
+    },
+    1000);
+  return intervalId;
 };
 
 const wsHandlers = {
