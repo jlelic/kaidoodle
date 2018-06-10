@@ -13,6 +13,7 @@ import { CommunicationService } from '../core/communication.service';
 export class LoginComponent implements OnInit {
 
   form: FormGroup;
+  error: string;
 
   constructor(private api: ApiService,
               private communication: CommunicationService,
@@ -25,24 +26,25 @@ export class LoginComponent implements OnInit {
   }
 
   buildForm() {
+    this.error = '';
     this.form = this.fb.group(
       {
         login: '',
-        password: ''
+        password: '',
+        newAccount: false
       }
     );
   }
 
 
   onSubmit() {
-    const { login } = this.form.value;
-    this.api.login(login)
+    this.api.login(this.form.value)
       .subscribe(
         ({ token }) => {
           this.communication.token = token;
           this.router.navigate(['/game'])
         },
-        error => console.error(error)
+        data => this.error = data.error.message
       );
   }
 }

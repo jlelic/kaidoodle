@@ -6,7 +6,7 @@
   </span>
   </div>
   <form [formGroup]="form" (submit)="onSubmit($event)">
-    <input type="text" formControlName="input"/>
+    <input type="text" formControlName="input" autofocus/>
     <button (click)="onSubmit($event)">Send</button>
   </form>
 </div>

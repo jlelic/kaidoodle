@@ -9,8 +9,8 @@ export class ApiService {
   constructor(private http: HttpClient, private router: Router) {
   }
 
-  login(login: string): Observable<any>  {
-    return this.post('login', { login });
+  login(data): Observable<any>  {
+    return this.post('login', data);
   }
 
   post(url, payload): Observable<any> {

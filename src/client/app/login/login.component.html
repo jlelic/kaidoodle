@@ -3,11 +3,15 @@
     Login
     <input formControlName="login" type="text" required autofocus>
   </label>
-
   <label>
     Password
-    <!--<input formControlName="password" type="password" required>-->
+    <input formControlName="password" type="password" required>
+  </label>
+  <label>
+    New account
+    <input formControlName="newAccount" type="checkbox">
   </label>
 
   <button type="submit" [disabled]="form.invalid">Sign In</button>
+  <span *ngIf="error">{{error}}</span>
 </form>

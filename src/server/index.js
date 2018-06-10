@@ -1,9 +1,12 @@
+const mongoose = require('mongoose');
 const uuid = require('uuid/v4');
 const path = require('path');
 const express = require('express');
 const app = express();
 const server = require('http').createServer(app);
 const io = require('socket.io')(server);
+
+const UserModel = require('./models/user');
 
 const WORDS = require('./words');
 
@@ -80,7 +83,7 @@ const startRound = () => {
 
 const endRound = () => {
   appState = STATE_COOLDOWN;
-  if(checkEveryoneGuessed()) {
+  if (checkEveryoneGuessed()) {
     io.sockets.emit(PlayerMessage.type, new PlayerMessage(drawingPlayerName, players[drawingPlayerName]).getPayload());
   }
   drawingPlayerName = null;
@@ -242,6 +245,16 @@ io.on('connection', (socket) => {
   });
 });
 
+
+mongoose.connect('mongodb://localhost/my_database', (err) => {
+  if (err) {
+    console.error(err);
+    process.exit(1);
+  }
+  console.log('Connected to database!')
+});
+
+
 // allow cors
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
@@ -253,12 +266,47 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
 
-app.post('/api/login', (req, res) => {
+app.post('/api/login', (req, res, next) => {
   console.log(req.body);
-  const { login } = req.body;
+  const { login, password, newAccount } = req.body;
   const token = uuid();
-  tokens[token] = login;
-  res.json({ token });
+  // fetch user and test password verification
+  UserModel.findOne({ login })
+    .then(user => {
+      if (!user) {
+        if (newAccount) {
+          const newUser = new UserModel({ login, password });
+          return newUser.save()
+            .then(savedUser => {
+              console.log(`Created user ${login}`);
+              return Promise.resolve(savedUser);
+            })
+        }
+        throw `User ${login} not found`;
+      }
+
+      if(newAccount) {
+        throw `User ${login} already exists!`;
+      }
+
+      return user.comparePassword(password)
+        .then(passwordCorrect => {
+          if (passwordCorrect) {
+            return Promise.resolve(user);
+          }
+          throw 'Incorrect password!';
+        });
+    })
+    .then(() => {
+      tokens[token] = login;
+      res.json({ token });
+    })
+    .catch(err => next(err));
 });
+
+app.use(function(error, req, res, next) {
+  console.error(error);
+  res.status(500).send({ message: error })
+})
 
 server.listen(port, () => console.log(`Game server is listening on ${port}`));
