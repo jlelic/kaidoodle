@@ -21,7 +21,8 @@ const TimerMessage = require('../shared/messages/timer-message');
 
 const incomingMessages = [HandshakeMessage, DrawMessage, ChatMessage, 'disconnect'];
 
-const port = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3000;
+const DATABASE_URI = process.env.MONGODB_URI || 'mongodb://localhost/my_database';
 
 if (process.env.NODE_ENV === 'production') {
   const distPath = path.resolve(__dirname, '../../dist');
@@ -246,7 +247,7 @@ io.on('connection', (socket) => {
 });
 
 
-mongoose.connect('mongodb://localhost/my_database', (err) => {
+mongoose.connect(DATABASE_URI, (err) => {
   if (err) {
     console.error(err);
     process.exit(1);
@@ -309,4 +310,4 @@ app.use(function(error, req, res, next) {
   res.status(500).send({ message: error })
 })
 
-server.listen(port, () => console.log(`Game server is listening on ${port}`));
+server.listen(PORT, () => console.log(`Game server is listening on ${PORT}`));
