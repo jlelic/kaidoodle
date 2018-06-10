@@ -16,11 +16,7 @@ export class PlayersService {
     this.communication.incomingMessages.subscribe(({ type, data }) => {
       switch (type) {
         case HandshakeMessage.type:
-          this._players.push({ name: data.name, score: 490 });
-          this._players.push({ name: 'Alenka', score: 480 });
-          this._players.push({ name: 'Grcovan', score: 1800 });
-          this._players.push({ name: 'Bmiska', score: 400 });
-          this._players.push({ name: 'EELEL', score: 100 });
+          this._players.push({ name: data.name, score: 0 });
           break;
         case PlayerMessage.type:
           let updatedPlayer = false;
