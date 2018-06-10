@@ -62,7 +62,7 @@ const startRound = () => {
     roundScores[name] = 0;
   });
   io.sockets.emit(ChatMessage.type, new ChatMessage(SERVER_NAME, `${drawingPlayerName} is drawing now!`).getPayload());
-  guessingTime = 10;
+  guessingTime = 90;
   timerUpdateInterval = startTimer(
     (elapsedTime) => {
       const remainingTime = guessingTime - elapsedTime;

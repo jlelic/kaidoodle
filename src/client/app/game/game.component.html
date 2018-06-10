@@ -1,7 +1,7 @@
 <div id="game">
   <div id="gameHeader">
     {{name}}
-    | <span *ngIf="drawingPlayerName">{{drawingPlayerName}} is drawing</span>
+    | <span *ngIf="drawingPlayerName && isPlaying">{{drawingPlayerName}} is drawing</span>
     | <span *ngIf="word">Word: {{word}}</span>
     | <span>{{time}}</span>
   </div>
@@ -19,17 +19,17 @@
           </ul>
         </span>
       </span>
-      <span>
+      <span if="toolsContainer">
+        <color-picker (colorSelected)="onColorSelected($event)"></color-picker>
         Thickness:
           <mat-slider
             min="1"
             max="33"
             step="4"
+            tickInterval="1"
             [(ngModel)]="thickness"
           >
           </mat-slider>
-       Eraser:
-        <mat-slide-toggle [(ngModel)]="erasing"></mat-slide-toggle>
       </span>
     </span>
     <chat></chat>

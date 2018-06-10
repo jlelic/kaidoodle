@@ -1,0 +1,18 @@
+.colorButton {
+  min-width: 16px;
+  min-height: 16px;
+  border: solid 3px rgba(80, 79, 82, 0.72);
+  border-radius: 5px;
+}
+
+.colorCell {
+  padding: 4px;
+}
+
+.colorButton.mat-button-toggle-checked {
+  border: solid 3px black;
+}
+
+#colorTable {
+  display: inline;
+}

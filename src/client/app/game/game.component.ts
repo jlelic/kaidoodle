@@ -23,8 +23,9 @@ export class GameComponent implements OnInit {
   prevY = null;
   word = '';
   time = 0;
+
   thickness = 1;
-  erasing = false;
+  color: string;
   isPlaying = false;
   roundResults = null;
 
@@ -37,6 +38,10 @@ export class GameComponent implements OnInit {
 
   get drawingPlayerName() {
     return this.players.drawing;
+  }
+
+  get canDraw() {
+    return !this.isPlaying || this.name == this.drawingPlayerName;
   }
 
   ngOnInit() {
@@ -74,8 +79,12 @@ export class GameComponent implements OnInit {
     this.context.fillRect(0, 0, this.width, this.height);
   }
 
+  onColorSelected(color) {
+    this.color = color;
+  }
+
   onMouseDown(event) {
-    if (this.communication.name !== this.players.drawing) {
+    if (!this.canDraw) {
       return;
     }
     this.isMouseDown = true;
@@ -83,7 +92,8 @@ export class GameComponent implements OnInit {
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
     const message = new DrawMessage(
-      this.erasing ? 'eraser' : 'pen',
+      'pen',
+      this.color,
       this.thickness,
       x,
       y,
@@ -104,14 +114,15 @@ export class GameComponent implements OnInit {
 
   onMouseMove(event: MouseEvent) {
     if (this.isMouseDown) {
-      if (this.communication.name !== this.players.drawing) {
+      if (!this.canDraw) {
         return;
       }
       const rect = this.canvas.nativeElement.getBoundingClientRect();
       const x = event.clientX - rect.left;
       const y = event.clientY - rect.top;
       const message = new DrawMessage(
-        this.erasing ? 'eraser' : 'pen',
+        'pen',
+        this.color,
         this.thickness,
         x,
         y,
@@ -126,8 +137,7 @@ export class GameComponent implements OnInit {
   }
 
   processDrawMessage(data) {
-    this.context.strokeStyle = data.tool == 'pen' ? 'black' : 'white';
-    console.log(this.context.fillStyle);
+    this.context.strokeStyle = data.color;
     let { x, y, prevX, prevY, thickness } = data;
     this.context.lineWidth = thickness;
     if (typeof prevX !== 'number' || typeof prevY !== 'number'

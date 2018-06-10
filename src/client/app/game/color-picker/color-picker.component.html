@@ -1,0 +1,14 @@
+<table id="colorTable">
+  <mat-button-toggle-group value="0x0">
+    <tr *ngFor="let i of [0,1]">
+      <td *ngFor="let j of [0,1,2,3,4]" class="colorCell">
+        <mat-button-toggle
+          class="colorButton"
+          [ngStyle]="{'background-color': colors[i][j]}"
+          [value]="i + 'x' +  j"
+          (change)="onColorSelected(i, j)"
+        ></mat-button-toggle>
+      </td>
+    </tr>
+  </mat-button-toggle-group>
+</table>
