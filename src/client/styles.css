@@ -1,5 +1,10 @@
 @import "~@angular/material/prebuilt-themes/deeppurple-amber.css";
 
 body {
-  background-color: gray;
+  background-color: #d1b796;
+  font-family: Arial;
+}
+
+.errorMessage {
+  color: red;
 }

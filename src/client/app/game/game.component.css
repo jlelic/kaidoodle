@@ -1,10 +1,12 @@
 #game {
-  display: flex;
+  display: table;
   flex-flow: column;
+  margin: auto auto;
 }
 
 #gameCanvas {
   display: inline-block;
+  border: solid 3px black;
 }
 
 #canvasContainer {
@@ -25,6 +27,7 @@
   flex: 0 1 auto;
   flex-flow: row;
   display: inline-flex;
+  position: relative;
 }
 
 #gameHeader {

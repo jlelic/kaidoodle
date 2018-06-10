@@ -1,9 +1,11 @@
 <div id="game">
   <div id="gameHeader">
-    {{name}}
-    | <span *ngIf="drawingPlayerName && isPlaying">{{drawingPlayerName}} is drawing</span>
-    | <span *ngIf="word">Word: {{word}}</span>
-    | <span>{{time}}</span>
+    <h3>
+      {{name}}
+      <span *ngIf="drawingPlayerName && isPlaying">| {{drawingPlayerName}} is drawing</span>
+      <span *ngIf="word">| Word: {{word}}</span>
+      <span>| Time: {{time}} s</span>
+    </h3>
   </div>
   <div id="gameContainer">
     <player-list></player-list>
