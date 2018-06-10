@@ -10,7 +10,7 @@
   <div id="gameContainer">
     <player-list></player-list>
     <span>
-      <span  id="canvasContainer">
+      <span id="canvasContainer">
         <canvas id="gameCanvas" #canvas></canvas>
         <span id="gameResults" *ngIf="roundResults">
           {{drawingPlayerName}} was drawing {{word}}
@@ -22,6 +22,7 @@
         </span>
       </span>
       <span if="toolsContainer">
+        <toolbar (toolSelected)="onToolSelected($event)"></toolbar>
         <color-picker (colorSelected)="onColorSelected($event)"></color-picker>
         Thickness:
           <mat-slider

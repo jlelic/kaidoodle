@@ -1,0 +1,10 @@
+.toolButton {
+  width: 32px;
+  height: 32px;
+  display: table-cell;
+}
+
+.toolIcon {
+  width: 32px;
+  height: 32px;
+}

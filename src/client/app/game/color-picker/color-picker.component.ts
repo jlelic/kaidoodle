@@ -14,7 +14,7 @@ export class ColorPickerComponent implements OnInit{
       'white',
       'red',
       'blue',
-      '#69421d',
+      '#673a15',
     ],
     [
       'gray',

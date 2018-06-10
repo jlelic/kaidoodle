@@ -1,0 +1,7 @@
+<mat-button-toggle-group value="brush">
+  <span *ngFor="let tool of tools">
+    <mat-button-toggle class="toolButton toggleButton" [value]="tool" (change)="onToolSelected(tool)">
+      <img class="toolIcon" [src]="'assets/icons/tools/'+tool+'.png'">
+    </mat-button-toggle>
+  </span>
+</mat-button-toggle-group>

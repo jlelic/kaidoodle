@@ -3,7 +3,7 @@
     <tr *ngFor="let i of [0,1]">
       <td *ngFor="let j of [0,1,2,3,4]" class="colorCell">
         <mat-button-toggle
-          class="colorButton"
+          class="toggleButton colorButton"
           [ngStyle]="{'background-color': colors[i][j]}"
           [value]="i + 'x' +  j"
           (change)="onColorSelected(i, j)"

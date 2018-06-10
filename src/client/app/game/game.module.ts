@@ -10,6 +10,7 @@ import { GameComponent } from './game.component';
 import { ChatComponent } from './chat/chat.component';
 import { PlayerListComponent } from './player-list/player-list.component';
 import { ColorPickerComponent } from './color-picker/color-picker.component';
+import { ToolbarComponent } from './toolbar/toolbar.component';
 
 @NgModule({
   imports: [
@@ -23,7 +24,8 @@ import { ColorPickerComponent } from './color-picker/color-picker.component';
     GameComponent,
     ChatComponent,
     PlayerListComponent,
-    ColorPickerComponent
+    ColorPickerComponent,
+    ToolbarComponent
   ]
 })
 export class GameModule { }

@@ -26,6 +26,8 @@ export class GameComponent implements OnInit {
 
   thickness = 1;
   color: string;
+  tool: string;
+  kaiImage: Image;
   isPlaying = false;
   roundResults = null;
 
@@ -46,6 +48,9 @@ export class GameComponent implements OnInit {
 
   ngOnInit() {
     this.communication.init();
+
+    this.kaiImage = new Image();
+    this.kaiImage.src = 'assets/presets/kai.png';
 
     const canvas = this.canvas.nativeElement;
     canvas.height = this.height;
@@ -83,6 +88,10 @@ export class GameComponent implements OnInit {
     this.color = color;
   }
 
+  onToolSelected(tool) {
+    this.tool = tool;
+  }
+
   onMouseDown(event) {
     if (!this.canDraw) {
       return;
@@ -92,7 +101,7 @@ export class GameComponent implements OnInit {
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
     const message = new DrawMessage(
-      'pen',
+      this.tool,
       this.color,
       this.thickness,
       x,
@@ -121,7 +130,7 @@ export class GameComponent implements OnInit {
       const x = event.clientX - rect.left;
       const y = event.clientY - rect.top;
       const message = new DrawMessage(
-        'pen',
+        this.tool,
         this.color,
         this.thickness,
         x,
@@ -138,20 +147,31 @@ export class GameComponent implements OnInit {
 
   processDrawMessage(data) {
     this.context.strokeStyle = data.color;
-    let { x, y, prevX, prevY, thickness } = data;
+    let { tool, x, y, prevX, prevY, thickness } = data;
     this.context.lineWidth = thickness;
     if (typeof prevX !== 'number' || typeof prevY !== 'number'
       || (x === prevX && y === prevY)) {
-      this.context.beginPath();
-      this.context.ellipse(x - thickness, y, thickness, thickness, 0, 0, 0);
-      this.context.stroke();
+      console.log(tool);
+      switch (tool) {
+        case 'brush':
+          this.context.beginPath();
+          this.context.ellipse(x - thickness, y, thickness, thickness, 0, 0, 0);
+          this.context.stroke();
+          break;
+        case 'kai':
+          this.context.drawImage(this.kaiImage, x-128, y-400);
+          break;
+      }
     } else {
-      this.context.beginPath();
-      this.context.lineCap = 'round';
-      this.context.moveTo(prevX, prevY);
-      this.context.lineTo(x, y);
-      this.context.stroke();
-
+      switch (tool) {
+        case 'brush':
+          this.context.beginPath();
+          this.context.lineCap = 'round';
+          this.context.moveTo(prevX, prevY);
+          this.context.lineTo(x, y);
+          this.context.stroke();
+          break;
+      }
     }
   }
 
