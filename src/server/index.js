@@ -35,6 +35,17 @@ const STATE_COOLDOWN = 'COOLDOWN';
 
 const SERVER_NAME = 'Server';
 
+const ROUND_TIME_BASE = 80;
+const ROUND_TIME_REDUCTION = 5;
+const ROUND_TIME_MINIMUM = 10;
+
+const SCORE_BONUS_FIRST = 5;
+const SCORE_BONUS_MAX = 5;
+const SCORE_BONUS_REDUCTION = 1;
+const SCORE_TIME_MULTIPLIER = 0.5;
+const SCORE_TIME_MAXIMUM = 30;
+const SCORE_BASE = 10;
+
 const tokens = {};
 const players = {};
 const drawHistory = [];
@@ -47,6 +58,9 @@ let wordHint;
 let guessingTime;
 let timerUpdateInterval;
 let roundScores;
+let remainingTime;
+let scoreBonus;
+let winnerScore;
 
 const startRound = () => {
   clearInterval(timerUpdateInterval);
@@ -66,10 +80,13 @@ const startRound = () => {
     roundScores[name] = 0;
   });
   io.sockets.emit(ChatMessage.type, new ChatMessage(SERVER_NAME, `${drawingPlayerName} is drawing now!`).getPayload());
-  guessingTime = 90;
+  guessingTime = ROUND_TIME_BASE;
+  remainingTime = guessingTime;
+  winnerScore = 0;
+  scoreBonus = SCORE_BONUS_MAX;
   timerUpdateInterval = startTimer(
     (elapsedTime) => {
-      const remainingTime = guessingTime - elapsedTime;
+      remainingTime = guessingTime - elapsedTime;
       io.sockets.emit(TimerMessage.type, new TimerMessage(remainingTime).getPayload());
       return remainingTime <= 0;
     },
@@ -84,9 +101,26 @@ const startRound = () => {
 
 const endRound = () => {
   appState = STATE_COOLDOWN;
-  if (checkEveryoneGuessed()) {
+
+  let playersGuessing = 0;
+  let playersGuessed = 0;
+  Object.keys(players).forEach(name => {
+    if (name === drawingPlayerName) {
+      return;
+    }
+    playersGuessing++;
+    if (players[name].guessed) {
+      playersGuessed++;
+    }
+  });
+
+  const drawingPlayerScore = Math.round(winnerScore * playersGuessed / playersGuessing);
+  roundScores[drawingPlayerName] = drawingPlayerScore;
+  if (players[drawingPlayerName]) {
+    players[drawingPlayerName].score += drawingPlayerScore;
     io.sockets.emit(PlayerMessage.type, new PlayerMessage(drawingPlayerName, players[drawingPlayerName]).getPayload());
   }
+
   drawingPlayerName = null;
   io.sockets.emit(EndRoundMessage.type, new EndRoundMessage(word, roundScores).getPayload());
   clearInterval(timerUpdateInterval);
@@ -158,7 +192,6 @@ const wsHandlers = {
       if (oldPlayerName == newPlayerName) {
         return;
       }
-      const score = players[oldPlayerName].score;
       players[oldPlayerName].socket.emit(PlayerMessage.type, new PlayerMessage(newPlayerName, players[oldPlayerName]).getPayload());
       players[newPlayerName].socket.emit(PlayerMessage.type, new PlayerMessage(oldPlayerName, players[newPlayerName]).getPayload());
     });
@@ -184,11 +217,15 @@ const wsHandlers = {
     if (appState == STATE_PLAYING && playerName != drawingPlayerName && data.text.toLowerCase() === word.toLowerCase()) {
       socket.emit(ChatMessage.type, new ChatMessage(SERVER_NAME, 'You guessed the word!').getPayload());
       socket.broadcast.emit(ChatMessage.type, new ChatMessage(SERVER_NAME, `${data.sender} guessed the word!`).getPayload());
-      const score = 100;
+      const score = SCORE_BASE + Math.round(Math.min(SCORE_TIME_MAXIMUM, remainingTime * SCORE_TIME_MULTIPLIER)) + scoreBonus + (winnerScore ? 0 : SCORE_BONUS_FIRST);
+      winnerScore = winnerScore || score;
+      scoreBonus -= SCORE_BONUS_REDUCTION;
       roundScores[playerName] = score;
       players[playerName].score += score;
       players[playerName].guessed = true;
       io.sockets.emit(PlayerMessage.type, new PlayerMessage(playerName, players[playerName]).getPayload());
+      if (remainingTime > 10)
+        guessingTime = guessingTime - Math.min(ROUND_TIME_REDUCTION, Math.max(0, remainingTime - ROUND_TIME_MINIMUM));
       if (checkEveryoneGuessed()) {
         endRound();
       }
@@ -271,7 +308,7 @@ app.post('/api/login', (req, res, next) => {
   console.log(req.body);
   const { login, password, newAccount } = req.body;
   const token = uuid();
-  // fetch user and test password verification
+
   UserModel.findOne({ login })
     .then(user => {
       if (!user) {
@@ -286,7 +323,7 @@ app.post('/api/login', (req, res, next) => {
         throw `User ${login} not found`;
       }
 
-      if(newAccount) {
+      if (newAccount) {
         throw `User ${login} already exists!`;
       }
 

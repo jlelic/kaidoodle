@@ -32,7 +32,7 @@ export class CommunicationService {
 
   init() {
     if (!this.token) {
-      // throw 'Token missing!';
+      throw 'Token missing!';
     }
 
     this.socket = io(this.serverUrl);
