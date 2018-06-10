@@ -8,7 +8,17 @@
   <div id="gameContainer">
     <player-list></player-list>
     <span>
-    <canvas id="gameCanvas" #canvas></canvas>
+      <span  id="canvasContainer">
+        <canvas id="gameCanvas" #canvas></canvas>
+        <span id="gameResults" *ngIf="roundResults">
+          {{drawingPlayerName}} was drawing {{word}}
+          <ul>
+            <li *ngFor="let result of roundResults">
+              {{result.name}}: {{result.score}}
+            </li>
+          </ul>
+        </span>
+      </span>
       <span>
         Thickness:
           <mat-slider

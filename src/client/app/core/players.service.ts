@@ -4,7 +4,7 @@ import { CommunicationService } from './communication.service';
 import * as HandshakeMessage from '../../../shared/messages/handshake-message';
 import * as PlayerMessage from '../../../shared/messages/player-message';
 import * as PlayerDisconnectedMessage from '../../../shared/messages/player-disconnected-message';
-import * as StartGameMessage from '../../../shared/messages/start-game-message';
+import * as StartRoundMessage from '../../../shared/messages/start-round-message';
 
 @Injectable()
 export class PlayersService {
@@ -39,7 +39,7 @@ export class PlayersService {
           const index = this._players.findIndex(({ name }) => name == data.name);
           this._players.splice(index, 1);
           break;
-        case StartGameMessage.type:
+        case StartRoundMessage.type:
           this._drawing = data.drawing;
           this._players.forEach(player => player.guessed = false);
           break;

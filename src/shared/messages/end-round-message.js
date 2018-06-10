@@ -1,11 +1,11 @@
 class Message {
 
-  constructor(drawing, word) {
-    this.payload = {drawing, word};
+  constructor(word, results) {
+    this.payload = { word, results };
   }
 
-  static get type(){
-    return 'start-game';
+  static get type() {
+    return 'end-round';
   }
 
   getType() {

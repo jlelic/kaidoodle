@@ -7,6 +7,20 @@
   display: inline-block;
 }
 
+#canvasContainer {
+  position: relative;
+  display: block;
+}
+
+#gameResults {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  background-color: rgba(249, 252, 255, 0.4);
+  height: 100%;
+  width: 100%;
+}
+
 #gameContainer {
   flex: 0 1 auto;
   flex-flow: row;

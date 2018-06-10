@@ -2,7 +2,8 @@ import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 
 import { CommunicationService } from '../core/communication.service';
 import * as DrawMessage from '../../../shared/messages/draw-message';
-import * as StartGameMessage from '../../../shared/messages/start-game-message';
+import * as StartRoundMessage from '../../../shared/messages/start-round-message';
+import * as EndRoundMessage from '../../../shared/messages/end-round-message';
 import * as TimerMessge from '../../../shared/messages/timer-message';
 import { PlayersService } from '../core/players.service';
 
@@ -24,6 +25,8 @@ export class GameComponent implements OnInit {
   time = 0;
   thickness = 1;
   erasing = false;
+  isPlaying = false;
+  roundResults = null;
 
   constructor(private communication: CommunicationService, private players: PlayersService) {
   }
@@ -51,13 +54,19 @@ export class GameComponent implements OnInit {
     const x = this.communication.incomingMessages.subscribe(({ type, data }) => {
       if (type == DrawMessage.type) {
         this.processDrawMessage(data);
-      } else if (type == StartGameMessage.type) {
+      } else if (type == StartRoundMessage.type) {
+        this.roundResults = null;
+        this.isPlaying = true;
+        this.word = data.word;
         this.clearCanvas();
+      } else if (type == EndRoundMessage.type) {
+        this.isPlaying = false;
+        this.roundResults = this.processRoundResults(data.results);
         this.word = data.word;
       } else if (type == TimerMessge.type) {
         this.time = data.time;
       }
-    })
+    });
   }
 
   clearCanvas() {
@@ -66,7 +75,7 @@ export class GameComponent implements OnInit {
   }
 
   onMouseDown(event) {
-    if(this.communication.name !== this.players.drawing) {
+    if (this.communication.name !== this.players.drawing) {
       return;
     }
     this.isMouseDown = true;
@@ -95,7 +104,7 @@ export class GameComponent implements OnInit {
 
   onMouseMove(event: MouseEvent) {
     if (this.isMouseDown) {
-      if(this.communication.name !== this.players.drawing) {
+      if (this.communication.name !== this.players.drawing) {
         return;
       }
       const rect = this.canvas.nativeElement.getBoundingClientRect();
@@ -124,7 +133,7 @@ export class GameComponent implements OnInit {
     if (typeof prevX !== 'number' || typeof prevY !== 'number'
       || (x === prevX && y === prevY)) {
       this.context.beginPath();
-      this.context.ellipse(x-thickness, y, thickness, thickness, 0, 0, 0);
+      this.context.ellipse(x - thickness, y, thickness, thickness, 0, 0, 0);
       this.context.stroke();
     } else {
       this.context.beginPath();
@@ -134,5 +143,11 @@ export class GameComponent implements OnInit {
       this.context.stroke();
 
     }
+  }
+
+  processRoundResults(data) {
+    const result = Object.keys(data).map(name => ({ name, score: data[name] }));
+    result.sort((a, b) => b.score - a.score);
+    return result;
   }
 }

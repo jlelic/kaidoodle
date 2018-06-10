@@ -10,7 +10,8 @@ const WORDS = require('./words');
 const HandshakeMessage = require('../shared/messages/handshake-message');
 const DrawMessage = require('../shared/messages/draw-message');
 const ChatMessage = require('../shared/messages/chat-message');
-const StartGameMessage = require('../shared/messages/start-game-message');
+const StartRoundMessage = require('../shared/messages/start-round-message');
+const EndRoundMessage = require('../shared/messages/end-round-message');
 const PlayerMessage = require('../shared/messages/player-message');
 const PlayerDisconnectedMessage = require('../shared/messages/player-disconnected-message');
 const TimerMessage = require('../shared/messages/timer-message');
@@ -41,47 +42,74 @@ let word;
 let wordHint;
 let guessingTime;
 let timerUpdateInterval;
+let roundScores;
 
-const startGame = () => {
+const startRound = () => {
   clearInterval(timerUpdateInterval);
   word = WORDS[Math.floor(Math.random() * WORDS.length)];
   wordHint = word.replace(/[ ]/g, '\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0');
   wordHint = wordHint.replace(/[a-zA-Z]/g, '＿ ');
   const playerNames = Object.keys(players);
   drawingPlayerName = playerNames[Math.floor(Math.random() * playerNames.length)];
+  roundScores = {};
   playerNames.forEach(name => {
-    const message = new StartGameMessage(
+    const message = new StartRoundMessage(
       drawingPlayerName,
       name === drawingPlayerName ? word : wordHint
     );
     players[name].guessed = false;
     players[name].socket.emit(message.getType(), message.getPayload());
+    roundScores[name] = 0;
   });
   io.sockets.emit(ChatMessage.type, new ChatMessage(SERVER_NAME, `${drawingPlayerName} is drawing now!`).getPayload());
-  guessingTime = 90;
+  guessingTime = 10;
   timerUpdateInterval = startTimer(
     (elapsedTime) => {
       const remainingTime = guessingTime - elapsedTime;
       io.sockets.emit(TimerMessage.type, new TimerMessage(remainingTime).getPayload());
-      return remainingTime < 0;
+      return remainingTime <= 0;
     },
     () => {
       io.sockets.emit(ChatMessage.type, new ChatMessage(SERVER_NAME, `Round over, the word was "${word}"`).getPayload());
-      startGame();
+      endRound();
     }
   );
   console.log(`Starting game, word: ${word}, player ${drawingPlayerName} drawing`);
   appState = STATE_PLAYING;
 };
 
-const checkGameFinished = () => {
-  let finished = true;
+const endRound = () => {
+  appState = STATE_COOLDOWN;
+  if(checkEveryoneGuessed()) {
+    io.sockets.emit(PlayerMessage.type, new PlayerMessage(drawingPlayerName, players[drawingPlayerName]).getPayload());
+  }
+  drawingPlayerName = null;
+  io.sockets.emit(EndRoundMessage.type, new EndRoundMessage(word, roundScores).getPayload());
+  clearInterval(timerUpdateInterval);
+  timerUpdateInterval = startTimer(
+    (elapsedTime) => {
+      const remainingTime = 10 - elapsedTime;
+      io.sockets.emit(TimerMessage.type, new TimerMessage(remainingTime).getPayload());
+      return remainingTime <= 0;
+    },
+    () => {
+      if (Object.keys(players).length >= 2) {
+        startRound();
+      } else {
+        appState = STATE_IDLE;
+      }
+    }
+  );
+};
+
+const checkEveryoneGuessed = () => {
+  let result = true;
   Object.keys(players).forEach(name => {
     if (!players[name].guessed && name != drawingPlayerName) {
-      finished = false;
+      result = false;
     }
   });
-  return finished;
+  return result;
 };
 
 const getUnixTime = () => {
@@ -118,7 +146,8 @@ const wsHandlers = {
     const playerNames = Object.keys(players);
 
     if (appState == STATE_PLAYING) {
-      socket.emit(StartGameMessage.type, new StartGameMessage(drawingPlayerName, wordHint).getPayload());
+      roundScores[newPlayerName] = 0;
+      socket.emit(StartRoundMessage.type, new StartRoundMessage(drawingPlayerName, wordHint).getPayload());
     }
 
     playerNames.forEach(oldPlayerName => {
@@ -131,7 +160,7 @@ const wsHandlers = {
     });
 
     if (appState == STATE_IDLE && playerNames.length >= 2) {
-      startGame();
+      startRound();
     }
 
     delete tokens[token];
@@ -141,9 +170,6 @@ const wsHandlers = {
       return;
     }
     socket.broadcast.emit(DrawMessage.type, data);
-    while (drawHistory.length >= 1000) {
-      drawHistory.shift();
-    }
     drawHistory.push(data)
   },
   [ChatMessage.type]: (socket, data, playerName) => {
@@ -154,11 +180,13 @@ const wsHandlers = {
     if (appState == STATE_PLAYING && playerName != drawingPlayerName && data.text.toLowerCase() === word.toLowerCase()) {
       socket.emit(ChatMessage.type, new ChatMessage(SERVER_NAME, 'You guessed the word!').getPayload());
       socket.broadcast.emit(ChatMessage.type, new ChatMessage(SERVER_NAME, `${data.sender} guessed the word!`).getPayload());
+      const score = 100;
+      roundScores[playerName] = score;
+      players[playerName].score += score;
       players[playerName].guessed = true;
-      players[playerName].score += 100;
       io.sockets.emit(PlayerMessage.type, new PlayerMessage(playerName, players[playerName]).getPayload());
-      if (checkGameFinished()) {
-        startGame();
+      if (checkEveryoneGuessed()) {
+        endRound();
       }
       return;
     }
@@ -175,7 +203,7 @@ io.on('connection', (socket) => {
   console.log('New websocket connection.');
   incomingMessages.forEach(msg => {
     socket.on(msg.type, data => {
-      console.log(`${msg.type}: ${JSON.stringify(data)}`);
+      // console.log(`${msg.type}: ${JSON.stringify(data)}`);
       const handler = wsHandlers[msg.type];
       if (!handler) {
         console.warn(`No websocket handler for ${msg.type} message type!`);
@@ -201,13 +229,13 @@ io.on('connection', (socket) => {
             if (playerNames.length == 1) {
               appState = STATE_IDLE;
             } else {
-              startGame();
+              endRound();
             }
           }
           return;
         }
-        if (checkGameFinished()) {
-          startGame();
+        if (checkEveryoneGuessed()) {
+          endRound();
         }
       })
     });
