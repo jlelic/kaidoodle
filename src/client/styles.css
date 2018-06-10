@@ -10,10 +10,21 @@ body {
 }
 
 .toggleButton {
-  border: solid 3px rgba(80, 79, 82, 0.72);
-  border-radius: 5px;
+  border: solid 3px rgba(80, 79, 82, 0.72) !important;
+  border-radius: 5px !important;
 }
 
 .toggleButton.mat-button-toggle-checked {
-  border: solid 3px black;
+  border: solid 3px black !important;
+}
+
+.toolButton {
+  width: 32px;
+  height: 32px;
+  display: table-cell;
+}
+
+.toolIcon {
+  width: 32px;
+  height: 32px;
 }

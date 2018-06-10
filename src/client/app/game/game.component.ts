@@ -27,9 +27,10 @@ export class GameComponent implements OnInit {
   thickness = 1;
   color: string;
   tool: string;
-  kaiImage: Image;
+  kaiImage;
   isPlaying = false;
   roundResults = null;
+  drawHistory = [];
 
   constructor(private communication: CommunicationService, private players: PlayersService) {
   }
@@ -61,6 +62,7 @@ export class GameComponent implements OnInit {
     this.context = canvas.getContext('2d');
     this.context.imageSmoothingEnabled = false;
     this.clearCanvas();
+    this.drawHistory = [];
     const x = this.communication.incomingMessages.subscribe(({ type, data }) => {
       if (type == DrawMessage.type) {
         this.processDrawMessage(data);
@@ -69,6 +71,7 @@ export class GameComponent implements OnInit {
         this.isPlaying = true;
         this.word = data.word;
         this.clearCanvas();
+        this.drawHistory = [];
       } else if (type == EndRoundMessage.type) {
         this.isPlaying = false;
         this.roundResults = this.processRoundResults(data.results);
@@ -82,6 +85,14 @@ export class GameComponent implements OnInit {
   clearCanvas() {
     this.context.fillStyle = 'white';
     this.context.fillRect(0, 0, this.width, this.height);
+  }
+
+  isDrawContinuous(data) {
+    if(!data){
+      return false;
+    }
+    const { x, y, prevX, prevY } = data;
+    return !(typeof prevX !== 'number' || typeof prevY !== 'number' || (x === prevX && y === prevY));
   }
 
   onColorSelected(color) {
@@ -145,33 +156,61 @@ export class GameComponent implements OnInit {
     }
   }
 
-  processDrawMessage(data) {
+  resetDrawing() {
+    if (!this.canDraw) {
+      return;
+    }
+    const message = new DrawMessage('clear');
+    this.processDrawMessage(message.getPayload());
+    this.communication.send(message);
+  }
+
+  undo() {
+    if (!this.canDraw) {
+      return;
+    }
+    const message = new DrawMessage('undo');
+    this.processDrawMessage(message.getPayload());
+    this.communication.send(message);
+  }
+
+  processDrawMessage(data, addToHistory = true) {
     this.context.strokeStyle = data.color;
     let { tool, x, y, prevX, prevY, thickness } = data;
     this.context.lineWidth = thickness;
-    if (typeof prevX !== 'number' || typeof prevY !== 'number'
-      || (x === prevX && y === prevY)) {
-      console.log(tool);
-      switch (tool) {
-        case 'brush':
-          this.context.beginPath();
-          this.context.ellipse(x - thickness, y, thickness, thickness, 0, 0, 0);
-          this.context.stroke();
-          break;
-        case 'kai':
-          this.context.drawImage(this.kaiImage, x-128, y-400);
-          break;
-      }
-    } else {
-      switch (tool) {
-        case 'brush':
-          this.context.beginPath();
+    const isContinuous = this.isDrawContinuous(data);
+    switch (tool) {
+      case 'brush':
+        this.context.beginPath();
+        if (isContinuous) {
           this.context.lineCap = 'round';
           this.context.moveTo(prevX, prevY);
           this.context.lineTo(x, y);
-          this.context.stroke();
-          break;
-      }
+        } else {
+          this.context.ellipse(x - thickness, y, thickness, thickness, 0, 0, 0);
+        }
+        this.context.stroke();
+        break;
+      case 'kai':
+        this.context.drawImage(this.kaiImage, x - 128, y - 400);
+        break;
+      case 'clear':
+        this.clearCanvas();
+        break;
+      case 'undo':
+        this.clearCanvas();
+        let isLastContinuous;
+        do {
+          isLastContinuous = this.isDrawContinuous(this.drawHistory[this.drawHistory.length - 1]);
+          this.drawHistory.pop();
+        } while (isLastContinuous);
+        this.drawHistory.forEach(data => this.processDrawMessage(data, false));
+        addToHistory = false;
+        break;
+    }
+
+    if (addToHistory) {
+      this.drawHistory.push(data);
     }
   }
 

@@ -21,7 +21,7 @@
           </ul>
         </span>
       </span>
-      <span if="toolsContainer">
+      <span *ngIf="canDraw" id="toolsContainer">
         <toolbar (toolSelected)="onToolSelected($event)"></toolbar>
         <color-picker (colorSelected)="onColorSelected($event)"></color-picker>
         Thickness:
@@ -33,6 +33,14 @@
             [(ngModel)]="thickness"
           >
           </mat-slider>
+        <span>
+          <button (click)="undo()" class="toggleButton" mat-button>
+                  <img class="toolIcon" [src]="'assets/icons/tools/undo.png'">
+          </button>
+          <button (click)="resetDrawing()" class="toggleButton" mat-button>
+                  <img class="toolIcon" [src]="'assets/icons/tools/clear.png'">
+          </button>
+        </span>
       </span>
     </span>
     <chat></chat>

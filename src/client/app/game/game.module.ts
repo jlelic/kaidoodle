@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import {
+  MatButtonModule,
   MatButtonToggleModule,
   MatSliderModule
 } from '@angular/material';
@@ -16,6 +17,7 @@ import { ToolbarComponent } from './toolbar/toolbar.component';
   imports: [
     CommonModule,
     FormsModule,
+    MatButtonModule,
     MatButtonToggleModule,
     MatSliderModule,
     ReactiveFormsModule
