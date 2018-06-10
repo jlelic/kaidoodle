@@ -34,6 +34,7 @@ export class PlayersService {
             this.updatePlayerData(newPlayer, data);
             this._players.push(newPlayer);
           }
+          this.sortPlayers();
           break;
         case PlayerDisconnectedMessage.type:
           const index = this._players.findIndex(({ name }) => name == data.name);
@@ -55,9 +56,19 @@ export class PlayersService {
     return this._drawing;
   }
 
-  private updatePlayerData(player, data){
+  private sortPlayers() {
+    this._players.sort((a, b) => {
+      const scoreDiff = b.score - a.score;
+      if (!scoreDiff) {
+        return a.name.localeCompare(b.name);
+      }
+      return scoreDiff;
+    });
+  }
+
+  private updatePlayerData(player, data) {
     Object.keys(data).forEach(key => {
-      if(typeof data[key] === 'undefined') {
+      if (typeof data[key] === 'undefined') {
         return;
       }
       player[key] = data[key];
