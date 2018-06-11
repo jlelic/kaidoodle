@@ -20,8 +20,9 @@ const PlayerMessage = require('../shared/messages/player-message');
 const PlayerDisconnectedMessage = require('../shared/messages/player-disconnected-message');
 const TimerMessage = require('../shared/messages/timer-message');
 const WordMessage = require('../shared/messages/word-message');
+const WordChoicesMessage = require('../shared/messages/word-choices-message');
 
-const incomingMessages = [HandshakeMessage, DrawMessage, ChatMessage, 'disconnect'];
+const incomingMessages = [HandshakeMessage, DrawMessage, ChatMessage, WordMessage, 'disconnect'];
 
 const PORT = process.env.PORT || 3000;
 const DATABASE_URI = process.env.MONGODB_URI || 'mongodb://localhost/my_database';
@@ -34,13 +35,16 @@ if (process.env.NODE_ENV === 'production') {
 const STATE_IDLE = 'IDLE';
 const STATE_PLAYING = 'PLAYING';
 const STATE_COOLDOWN = 'COOLDOWN';
+const STATE_CHOOSING_WORD = 'CHOOSING_WORD';
 
 const SERVER_NAME = 'Server';
 
-const ROUND_TIME_BASE = 80;
-const ROUND_TIME_REDUCTION = 5;
-const ROUND_TIME_MINIMUM = 10;
-const ROUND_TIME_HINT_START = 30;
+const TIME_ROUND_BASE = 80;
+const TIME_ROUND_REDUCTION = 5;
+const TIME_ROUND_MINIMUM = 10;
+const TIME_ROUND_HINT_START = 30;
+const TIME_WORD_CHOOSE = 10;
+const TIME_COOLDOWN = 5;
 
 const SCORE_BONUS_FIRST = 4;
 const SCORE_BONUS_MAX = 6;
@@ -56,7 +60,7 @@ const players = {};
 const drawHistory = [];
 const chatHistory = [];
 
-let appState = STATE_IDLE;
+let gameState = STATE_IDLE;
 let drawingPlayerName = '';
 let word;
 let wordCharLength;
@@ -85,13 +89,13 @@ const startGame = () => {
   });
   sendToAllPlayers(new ChatMessage(SERVER_NAME, 'Starting new game'));
   console.log('Starting new game');
-  startRound();
+  prepareRound();
 };
 
 const endGame = () => {
   clearInterval(timerUpdateInterval);
 
-  appState = STATE_IDLE;
+  gameState = STATE_IDLE;
 
   sendToAllPlayers(new ChatMessage(SERVER_NAME, 'Game over!'));
   sendToAllPlayers(new GameOverMessage());
@@ -113,14 +117,14 @@ const endGame = () => {
   );
 };
 
-const startRound = () => {
+const prepareRound = () => {
   clearInterval(timerUpdateInterval);
 
   drawnThisRound = drawnThisRound || new Set();
 
   const playerNames = Object.keys(players);
   if (playerNames.length < 2) {
-    appState = STATE_IDLE;
+    gameState = STATE_IDLE;
     return;
   }
 
@@ -140,12 +144,39 @@ const startRound = () => {
     if (roundsPlayed == MAX_ROUNDS) {
       endGame();
     } else {
-      startRound();
+      prepareRound();
     }
     return;
   }
 
-  word = WORDS[Math.floor(Math.random() * WORDS.length)];
+  const wordIndices = new Set();
+  while (wordIndices.size < 3) {
+    wordIndices.add(Math.floor(Math.random() * WORDS.length));
+  }
+
+  const words = [...wordIndices].map(i => WORDS[i]);
+  console.log(`Preparing round, drawing ${drawingPlayerName}, choices: ${words.join(', ')}`);
+  players[drawingPlayerName].socket.emit(WordChoicesMessage.type, new WordChoicesMessage(words).getPayload());
+  sendToAllPlayers(new ChatMessage(SERVER_NAME, `${drawingPlayerName} is choosing the word`));
+
+  gameState = STATE_CHOOSING_WORD;
+
+  timerUpdateInterval = startTimer(
+    (elapsedTime) => {
+      remainingTime = TIME_WORD_CHOOSE - elapsedTime;
+      sendToAllPlayers(new TimerMessage(remainingTime));
+      return remainingTime <= 0;
+    },
+    () => {
+      word = words[0];
+      startRound();
+    }
+  );
+};
+
+const startRound = () => {
+  clearInterval(timerUpdateInterval);
+
   wordCharLength = word.split('').reduce((length, char) => {
     if (char.match(/[a-zA-Z]/)) {
       return length + 1
@@ -159,7 +190,7 @@ const startRound = () => {
   wordHint = generateWordHint();
 
   roundScores = {};
-  playerNames.forEach(name => {
+  Object.keys(players).forEach(name => {
     const message = new StartRoundMessage(
       drawingPlayerName,
       name === drawingPlayerName ? word : wordHint,
@@ -171,7 +202,7 @@ const startRound = () => {
   });
   sendToAllPlayers(new ChatMessage(SERVER_NAME, `${drawingPlayerName} is drawing now!`));
 
-  guessingTime = ROUND_TIME_BASE;
+  guessingTime = TIME_ROUND_BASE;
   remainingTime = guessingTime;
   winnerScore = 0;
   scoreBonus = SCORE_BONUS_MAX;
@@ -188,11 +219,11 @@ const startRound = () => {
     }
   );
   console.log(`Starting round, word: ${word}, player ${drawingPlayerName} drawing`);
-  appState = STATE_PLAYING;
+  gameState = STATE_PLAYING;
 };
 
 const endRound = () => {
-  appState = STATE_COOLDOWN;
+  gameState = STATE_COOLDOWN;
 
   drawnThisRound.add(drawingPlayerName);
   let playersGuessing = 0;
@@ -219,13 +250,13 @@ const endRound = () => {
   clearInterval(timerUpdateInterval);
   timerUpdateInterval = startTimer(
     (elapsedTime) => {
-      const remainingTime = 10 - elapsedTime;
+      const remainingTime = TIME_COOLDOWN - elapsedTime;
       sendToAllPlayers(new TimerMessage(remainingTime));
       return remainingTime <= 0;
     },
     () => {
       if (Object.keys(players).length >= 2) {
-        startRound();
+        prepareRound();
       } else {
         endGame();
       }
@@ -245,7 +276,7 @@ const checkEveryoneGuessed = () => {
 
 const checkWordHintAvailable = (time) => {
   const maxHints = Math.ceil(wordCharLength / 3);
-  if (time <= ROUND_TIME_HINT_START * (maxHints - hintsShown.size) / maxHints)
+  if (time <= TIME_ROUND_HINT_START * (maxHints - hintsShown.size) / maxHints)
     wordHint = generateWordHint(true);
   players[drawingPlayerName].socket.broadcast.emit(WordMessage.type, new WordMessage(wordHint).getPayload());
 };
@@ -312,7 +343,7 @@ const wsHandlers = {
 
     const playerNames = Object.keys(players);
 
-    if (appState == STATE_PLAYING) {
+    if (gameState == STATE_PLAYING) {
       roundScores[newPlayerName] = 0;
       socket.emit(StartRoundMessage.type, new StartRoundMessage(drawingPlayerName, wordHint, roundsPlayed + 1).getPayload());
     }
@@ -325,14 +356,14 @@ const wsHandlers = {
       players[newPlayerName].socket.emit(PlayerMessage.type, new PlayerMessage(oldPlayerName, players[newPlayerName]).getPayload());
     });
 
-    if (appState == STATE_IDLE && playerNames.length >= 2) {
+    if (gameState == STATE_IDLE && playerNames.length >= 2) {
       startGame();
     }
 
     delete tokens[token];
   },
   [DrawMessage.type]: (socket, data, playerName) => {
-    if (appState == STATE_PLAYING && playerName !== drawingPlayerName) {
+    if (gameState == STATE_PLAYING && playerName !== drawingPlayerName) {
       return;
     }
     socket.broadcast.emit(DrawMessage.type, data);
@@ -343,7 +374,7 @@ const wsHandlers = {
       console.error(`${playerName} is trying to send chat message under name ${data.sender}`);
     }
     data.sender = playerName;
-    if (appState == STATE_PLAYING && playerName != drawingPlayerName && data.text.toLowerCase() === word.toLowerCase()) {
+    if (gameState == STATE_PLAYING && playerName != drawingPlayerName && data.text.toLowerCase() === word.toLowerCase()) {
       const score = SCORE_BASE + Math.round(Math.min(SCORE_TIME_MAXIMUM, remainingTime * SCORE_TIME_MULTIPLIER)) + scoreBonus + (winnerScore ? 0 : SCORE_BONUS_FIRST);
       winnerScore = winnerScore || score;
       scoreBonus -= SCORE_BONUS_REDUCTION;
@@ -354,7 +385,7 @@ const wsHandlers = {
       socket.broadcast.emit(ChatMessage.type, new ChatMessage(SERVER_NAME, `${data.sender} guessed the word! +${score} points`).getPayload());
       sendToAllPlayers(new PlayerMessage(playerName, players[playerName]));
       if (remainingTime > 10)
-        guessingTime = guessingTime - Math.min(ROUND_TIME_REDUCTION, Math.max(0, remainingTime - ROUND_TIME_MINIMUM));
+        guessingTime = guessingTime - Math.min(TIME_ROUND_REDUCTION, Math.max(0, remainingTime - TIME_ROUND_MINIMUM));
       if (checkEveryoneGuessed()) {
         endRound();
       }
@@ -366,6 +397,14 @@ const wsHandlers = {
     }
     chatHistory.push(data)
   },
+  [WordMessage.type]: (socket, data, playerName) => {
+    if (playerName != drawingPlayerName || gameState != STATE_CHOOSING_WORD) {
+      return;
+    }
+    clearInterval(timerUpdateInterval);
+    word = data.word;
+    startRound();
+  }
 };
 
 

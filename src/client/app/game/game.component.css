@@ -42,3 +42,13 @@
 #gameHeader {
   flex: 0 1 40px;
 }
+
+#wordChoicesContainer {
+  display: block;
+}
+
+.wordChoice {
+  min-height: 40px;
+  min-width: 120px;
+  margin: 20px;
+}

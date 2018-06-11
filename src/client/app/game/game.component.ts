@@ -7,6 +7,8 @@ import * as EndRoundMessage from '../../../shared/messages/end-round-message';
 import * as GameOverMessage from '../../../shared/messages/game-over-message';
 import * as TimerMessage from '../../../shared/messages/timer-message';
 import * as WordMessage from '../../../shared/messages/word-message';
+import * as WordChoicesMessage from '../../../shared/messages/word-choices-message';
+
 import { PlayersService } from '../core/players.service';
 
 @Component({
@@ -21,9 +23,10 @@ export class GameComponent implements OnInit {
   width = 800;
   height = 600;
   isMouseDown = false;
-  prevX = null;
-  prevY = null;
+  prevX: number = null;
+  prevY: number = null;
   word = '';
+  words: string[] = null;
   time = 0;
   round = 0;
 
@@ -73,6 +76,7 @@ export class GameComponent implements OnInit {
           this.processDrawMessage(data);
           break;
         case StartRoundMessage.type:
+          this.words = null;
           this.roundResults = null;
           this.gameResults = null;
           this.isPlaying = true;
@@ -91,6 +95,11 @@ export class GameComponent implements OnInit {
           break;
         case WordMessage.type:
           this.word = data.word;
+          break;
+        case WordChoicesMessage.type:
+          this.words = data.words;
+          this.gameResults = null;
+          this.roundResults = null;
           break;
         case GameOverMessage.type:
           this.gameResults = this.players.players;
@@ -114,15 +123,15 @@ export class GameComponent implements OnInit {
     return !(typeof prevX !== 'number' || typeof prevY !== 'number' || (x === prevX && y === prevY));
   }
 
-  onColorSelected(color) {
+  onColorSelected(color: string) {
     this.color = color;
   }
 
-  onToolSelected(tool) {
+  onToolSelected(tool: string) {
     this.tool = tool;
   }
 
-  onMouseDown(event) {
+  onMouseDown(event: MouseEvent) {
     if (!this.canDraw) {
       return;
     }
@@ -173,6 +182,10 @@ export class GameComponent implements OnInit {
       this.prevY = y;
       this.communication.send(message);
     }
+  }
+
+  onWordChoice(wordChoice: string) {
+    this.communication.send(new WordMessage(wordChoice));
   }
 
   resetDrawing() {

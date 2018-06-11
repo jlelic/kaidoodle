@@ -33,6 +33,16 @@
             </li>
           </ol>
         </span>
+        <span class="results" *ngIf="words">
+          <span>
+            <strong>Choose a word:</strong>
+          </span>
+          <span id="wordChoicesContainer">
+            <button *ngFor="let wordChoice of words" mat-button class="myButton wordChoice" (click)="onWordChoice(wordChoice)">
+              {{wordChoice}}
+            </button>
+          </span>
+        </span>
       </span>
       <span *ngIf="canDraw" id="toolsContainer">
         <toolbar (toolSelected)="onToolSelected($event)"></toolbar>
@@ -47,10 +57,10 @@
           >
           </mat-slider>
         <span>
-          <button (click)="undo()" class="toggleButton" mat-button>
+          <button (click)="undo()" class="myButton" mat-button>
                   <img class="toolIcon" [src]="'assets/icons/tools/undo.png'">
           </button>
-          <button (click)="resetDrawing()" class="toggleButton" mat-button>
+          <button (click)="resetDrawing()" class="myButton" mat-button>
                   <img class="toolIcon" [src]="'assets/icons/tools/clear.png'">
           </button>
         </span>
