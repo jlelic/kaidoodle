@@ -23,6 +23,8 @@ export class GameComponent implements OnInit {
   width = 800;
   height = 600;
   isMouseDown = false;
+  isOverCanvas = false;
+  startedClickOnCanvas = false;
   prevX: number = null;
   prevY: number = null;
   word = '';
@@ -63,9 +65,9 @@ export class GameComponent implements OnInit {
     const canvas = this.canvas.nativeElement;
     canvas.height = this.height;
     canvas.width = this.width;
-    canvas.addEventListener('mousedown', e => this.onMouseDown(e));
-    canvas.addEventListener('mouseup', () => this.onMouseUp());
-    canvas.addEventListener('mousemove', e => this.onMouseMove(e));
+    window.addEventListener('mousedown', e => this.onMouseDown(e));
+    window.addEventListener('mouseup', e => this.onMouseUp(e));
+    window.addEventListener('mousemove', e => this.onMouseMove(e));
     this.context = canvas.getContext('2d');
     this.context.imageSmoothingEnabled = false;
     this.clearCanvas();
@@ -123,6 +125,32 @@ export class GameComponent implements OnInit {
     return !(typeof prevX !== 'number' || typeof prevY !== 'number' || (x === prevX && y === prevY));
   }
 
+  calculateCanvasPosition(event: MouseEvent) {
+    const rect = this.canvas.nativeElement.getBoundingClientRect();
+    let x = event.clientX - rect.left;
+    let y = event.clientY - rect.top;
+    if (x < 0 || y < 0 || x > this.width || y > this.height) {
+      if (this.isOverCanvas) {
+        if (x < 0) {
+          x = 0;
+        } else if (x > this.width) {
+          x = this.width
+        }
+        if (y < 0) {
+          y = 0;
+        } else if (y > this.height) {
+          y = this.height;
+        }
+        this.isOverCanvas = false;
+        return { x, y };
+      }
+      this.isOverCanvas = false;
+      return null;
+    }
+    this.isOverCanvas = true;
+    return { x, y };
+  }
+
   onColorSelected(color: string) {
     this.color = color;
   }
@@ -136,9 +164,13 @@ export class GameComponent implements OnInit {
       return;
     }
     this.isMouseDown = true;
-    const rect = this.canvas.nativeElement.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
+    const position = this.calculateCanvasPosition(event);
+    if (!position) {
+      this.startedClickOnCanvas = false;
+      return
+    }
+    this.startedClickOnCanvas = true;
+    const { x, y } = position;
     const message = new DrawMessage(
       this.tool,
       this.color,
@@ -154,20 +186,29 @@ export class GameComponent implements OnInit {
     this.communication.send(message);
   }
 
-  onMouseUp() {
+  onMouseUp(event: MouseEvent) {
     this.prevX = null;
     this.prevY = null;
     this.isMouseDown = false;
   }
 
   onMouseMove(event: MouseEvent) {
-    if (this.isMouseDown) {
+    if(this.startedClickOnCanvas) {
+      event.preventDefault();
+    } else {
+      return;
+    }
+    const position = this.calculateCanvasPosition(event);
+    if (!position) {
+      this.prevX = null;
+      this.prevY = null;
+      return;
+    }
+    const { x, y } = position;
+    if (event.buttons) {
       if (!this.canDraw) {
         return;
       }
-      const rect = this.canvas.nativeElement.getBoundingClientRect();
-      const x = event.clientX - rect.left;
-      const y = event.clientY - rect.top;
       const message = new DrawMessage(
         this.tool,
         this.color,
