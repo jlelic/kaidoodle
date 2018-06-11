@@ -14,13 +14,22 @@
   display: block;
 }
 
-#gameResults {
+#roundResults {
+  font-size: 2em;
   position: absolute;
   top: 0px;
   left: 0px;
   background-color: rgba(249, 252, 255, 0.4);
   height: 100%;
   width: 100%;
+}
+
+#roundResults > span {
+  padding: 40px;
+}
+
+#roundResults li {
+  padding: 20px;
 }
 
 #gameContainer {

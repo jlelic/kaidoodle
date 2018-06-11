@@ -12,11 +12,13 @@
     <span>
       <span id="canvasContainer">
         <canvas id="gameCanvas" #canvas></canvas>
-        <span id="gameResults" *ngIf="roundResults">
-          {{drawingPlayerName}} was drawing {{word}}
+        <span id="roundResults" *ngIf="roundResults">
+          <span>
+            <strong>{{drawingPlayerName}}</strong> was drawing <strong>{{word}}</strong>
+          </span>
           <ul>
             <li *ngFor="let result of roundResults">
-              {{result.name}}: {{result.score}}
+              <strong>{{result.name}}</strong>: {{result.score}}
             </li>
           </ul>
         </span>
