@@ -62,6 +62,13 @@ let remainingTime;
 let scoreBonus;
 let winnerScore;
 let drawnThisRound;
+let roundsPlayed;
+
+const startGame = () => {
+  i
+  roundsPlayed = 0;
+  startRound();
+};
 
 const startRound = () => {
   clearInterval(timerUpdateInterval);
@@ -103,7 +110,7 @@ const startRound = () => {
     players[name].socket.emit(message.getType(), message.getPayload());
     roundScores[name] = 0;
   });
-  io.sockets.emit(ChatMessage.type, new ChatMessage(SERVER_NAME, `${drawingPlayerName} is drawing now!`).getPayload());
+  sendToAllPlayers(new ChatMessage(SERVER_NAME, `${drawingPlayerName} is drawing now!`));
 
   guessingTime = ROUND_TIME_BASE;
   remainingTime = guessingTime;
@@ -112,11 +119,11 @@ const startRound = () => {
   timerUpdateInterval = startTimer(
     (elapsedTime) => {
       remainingTime = guessingTime - elapsedTime;
-      io.sockets.emit(TimerMessage.type, new TimerMessage(remainingTime).getPayload());
+      sendToAllPlayers(new TimerMessage(remainingTime));
       return remainingTime <= 0;
     },
     () => {
-      io.sockets.emit(ChatMessage.type, new ChatMessage(SERVER_NAME, `Round over, the word was "${word}"`).getPayload());
+      sendToAllPlayers(new ChatMessage(SERVER_NAME, `Round over, the word was "${word}"`));
       endRound();
     }
   );
@@ -144,16 +151,16 @@ const endRound = () => {
   roundScores[drawingPlayerName] = drawingPlayerScore;
   if (players[drawingPlayerName]) {
     players[drawingPlayerName].score += drawingPlayerScore;
-    io.sockets.emit(PlayerMessage.type, new PlayerMessage(drawingPlayerName, players[drawingPlayerName]).getPayload());
+    sendToAllPlayers(new PlayerMessage(drawingPlayerName, players[drawingPlayerName]));
   }
 
   drawingPlayerName = null;
-  io.sockets.emit(EndRoundMessage.type, new EndRoundMessage(word, roundScores).getPayload());
+  sendToAllPlayers(new EndRoundMessage(word, roundScores));
   clearInterval(timerUpdateInterval);
   timerUpdateInterval = startTimer(
     (elapsedTime) => {
       const remainingTime = 10 - elapsedTime;
-      io.sockets.emit(TimerMessage.type, new TimerMessage(remainingTime).getPayload());
+      sendToAllPlayers(new TimerMessage(remainingTime));
       return remainingTime <= 0;
     },
     () => {
@@ -191,6 +198,10 @@ const startTimer = (updateCallback, doneCallback) => {
     },
     1000);
   return intervalId;
+};
+
+const sendToAllPlayers = (message) => {
+  io.sockets.emit(message.getType(), message.getPayload());
 };
 
 const wsHandlers = {
@@ -249,7 +260,7 @@ const wsHandlers = {
       roundScores[playerName] = score;
       players[playerName].score += score;
       players[playerName].guessed = true;
-      io.sockets.emit(PlayerMessage.type, new PlayerMessage(playerName, players[playerName]).getPayload());
+      sendToAllPlayers(new PlayerMessage(playerName, players[playerName]));
       if (remainingTime > 10)
         guessingTime = guessingTime - Math.min(ROUND_TIME_REDUCTION, Math.max(0, remainingTime - ROUND_TIME_MINIMUM));
       if (checkEveryoneGuessed()) {
