@@ -1,5 +1,11 @@
 <ul id="playerList">
-  <li class="playerListEntry" *ngFor="let player of players; let i = index">
+  <li
+    *ngFor="let player of players; let i = index"
+    [ngClass]="{
+      playerGuessed: player.guessed,
+      playerDrawing: player.name == drawingPlayerName
+    }"
+  >
     {{i+1}}. <strong>{{player.name}}</strong>
     <span *ngIf="player.name == drawingPlayerName">(drawing)</span>
     <span *ngIf="player.guessed">(guessed)</span>

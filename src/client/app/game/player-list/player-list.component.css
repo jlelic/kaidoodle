@@ -15,13 +15,25 @@
   padding: 0px;
 }
 
-.playerListEntry {
+#playerList li {
   display: inline-block;
   width: 180px;
   padding: 10px;
   border-bottom: solid 2px gray;
   margin: 0px;
   margin-right: -1px;
+}
+
+#playerList li:first-child {
+  border-top-left-radius: 10px;
+}
+
+#playerList li.playerGuessed {
+  background-color: #c6ff9b;
+}
+
+#playerList li.playerDrawing {
+  background-color: #bfe0ff;
 }
 
 .playerScore {
