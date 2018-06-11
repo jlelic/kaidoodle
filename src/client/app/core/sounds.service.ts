@@ -8,10 +8,10 @@ export class SoundsService {
 
   constructor() {
     this.audio = new Audio;
+    this.audio.src = 'assets/sounds/ok.wav';
   }
 
   playOk() {
-    this.audio.src = 'assets/sounds/ok.wav';
     this.audio.play();
   }
 
