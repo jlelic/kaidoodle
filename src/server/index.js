@@ -61,14 +61,38 @@ let roundScores;
 let remainingTime;
 let scoreBonus;
 let winnerScore;
+let drawnThisRound;
 
 const startRound = () => {
   clearInterval(timerUpdateInterval);
+
+  drawnThisRound = drawnThisRound || new Set();
+
+  const playerNames = Object.keys(players);
+  if(playerNames.length < 2) {
+    appState = STATE_IDLE;
+    return;
+  }
+
+  drawingPlayerName = null;
+  playerNames.forEach(name => {
+    if(drawingPlayerName) {
+      return;
+    }
+    if(!drawnThisRound.has(name)) {
+      drawingPlayerName = name;
+    }
+  });
+
+  if(!drawingPlayerName) {
+    drawnThisRound.clear();
+    startRound();
+  }
+
   word = WORDS[Math.floor(Math.random() * WORDS.length)];
   wordHint = word.replace(/[ ]/g, '\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0');
   wordHint = wordHint.replace(/[a-zA-Z]/g, '＿ ');
-  const playerNames = Object.keys(players);
-  drawingPlayerName = playerNames[Math.floor(Math.random() * playerNames.length)];
+
   roundScores = {};
   playerNames.forEach(name => {
     const message = new StartRoundMessage(
@@ -80,6 +104,7 @@ const startRound = () => {
     roundScores[name] = 0;
   });
   io.sockets.emit(ChatMessage.type, new ChatMessage(SERVER_NAME, `${drawingPlayerName} is drawing now!`).getPayload());
+
   guessingTime = ROUND_TIME_BASE;
   remainingTime = guessingTime;
   winnerScore = 0;
@@ -102,6 +127,7 @@ const startRound = () => {
 const endRound = () => {
   appState = STATE_COOLDOWN;
 
+  drawnThisRound.add(drawingPlayerName);
   let playersGuessing = 0;
   let playersGuessed = 0;
   Object.keys(players).forEach(name => {
