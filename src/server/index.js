@@ -298,14 +298,14 @@ const wsHandlers = {
     }
     data.sender = playerName;
     if (appState == STATE_PLAYING && playerName != drawingPlayerName && data.text.toLowerCase() === word.toLowerCase()) {
-      socket.emit(ChatMessage.type, new ChatMessage(SERVER_NAME, 'You guessed the word!').getPayload());
-      socket.broadcast.emit(ChatMessage.type, new ChatMessage(SERVER_NAME, `${data.sender} guessed the word!`).getPayload());
       const score = SCORE_BASE + Math.round(Math.min(SCORE_TIME_MAXIMUM, remainingTime * SCORE_TIME_MULTIPLIER)) + scoreBonus + (winnerScore ? 0 : SCORE_BONUS_FIRST);
       winnerScore = winnerScore || score;
       scoreBonus -= SCORE_BONUS_REDUCTION;
       roundScores[playerName] = score;
       players[playerName].score += score;
       players[playerName].guessed = true;
+      socket.emit(ChatMessage.type, new ChatMessage(SERVER_NAME, `You guessed the word! +${score} points`).getPayload());
+      socket.broadcast.emit(ChatMessage.type, new ChatMessage(SERVER_NAME, `${data.sender} guessed the word! +${score} points`).getPayload());
       sendToAllPlayers(new PlayerMessage(playerName, players[playerName]));
       if (remainingTime > 10)
         guessingTime = guessingTime - Math.min(ROUND_TIME_REDUCTION, Math.max(0, remainingTime - ROUND_TIME_MINIMUM));

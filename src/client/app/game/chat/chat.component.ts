@@ -2,6 +2,7 @@ import { AfterViewChecked, Component, ElementRef, OnInit, ViewChild } from '@ang
 import { FormBuilder, FormGroup } from '@angular/forms'
 
 import { CommunicationService } from '../../core/communication.service';
+import { SoundsService } from '../../core/sounds.service';
 
 import * as ChatMessage from '../../../../shared/messages/chat-message';
 
@@ -17,7 +18,7 @@ export class ChatComponent implements OnInit, AfterViewChecked  {
   messages = [];
   keepScrollingToBottom = true;
 
-  constructor(private communication: CommunicationService, private fb: FormBuilder) {
+  constructor(private communication: CommunicationService, private fb: FormBuilder, private sounds: SoundsService) {
     this.communication.incomingMessages.subscribe(({type, data}) => {
       if (type === ChatMessage.type){
         this.processChatMessage(data);
@@ -47,6 +48,11 @@ export class ChatComponent implements OnInit, AfterViewChecked  {
   processChatMessage(data) {
     const el = this.chatHistoryElement.nativeElement;
     this.keepScrollingToBottom =  data.sender == this.communication.name || el.scrollHeight - el.offsetHeight - el.scrollTop < 5;
+
+    if(data.sender=== 'Server' && data.text.startsWith('You guessed the word')) {
+      this.sounds.playOk();
+    }
+
     this.messages.push(data)
   }
 
