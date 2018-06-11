@@ -12,6 +12,7 @@ const WORDS = require('./words');
 
 const HandshakeMessage = require('../shared/messages/handshake-message');
 const DrawMessage = require('../shared/messages/draw-message');
+const GameOverMessage = require('../shared/messages/game-over-message');
 const ChatMessage = require('../shared/messages/chat-message');
 const StartRoundMessage = require('../shared/messages/start-round-message');
 const EndRoundMessage = require('../shared/messages/end-round-message');
@@ -46,6 +47,8 @@ const SCORE_TIME_MULTIPLIER = 0.5;
 const SCORE_TIME_MAXIMUM = 30;
 const SCORE_BASE = 10;
 
+const MAX_ROUNDS = 2;
+
 const tokens = {};
 const players = {};
 const drawHistory = [];
@@ -65,9 +68,45 @@ let drawnThisRound;
 let roundsPlayed;
 
 const startGame = () => {
-  i
   roundsPlayed = 0;
+  const playerNames = Object.keys(players);
+
+  if (playerNames.length < 2) {
+    return;
+  }
+
+  playerNames.forEach(name => {
+    players[name].score = 0;
+    sendToAllPlayers(new PlayerMessage(name, players[name]));
+  });
+  sendToAllPlayers(new ChatMessage(SERVER_NAME, 'Starting new game'));
+  console.log('Starting new game');
   startRound();
+};
+
+const endGame = () => {
+  clearInterval(timerUpdateInterval);
+
+  appState = STATE_IDLE;
+
+  sendToAllPlayers(new ChatMessage(SERVER_NAME, 'Game over!'));
+  sendToAllPlayers(new GameOverMessage());
+  console.log('Game over');
+
+  timerUpdateInterval = startTimer(
+    (elapsedTime) => {
+      remainingTime = 20 - elapsedTime;
+      sendToAllPlayers(new TimerMessage(remainingTime));
+      return remainingTime <= 0;
+    },
+    () => {
+      if (Object.keys(players).length >= 2) {
+        startGame();
+      } else {
+        console.log('Not enough players to start a new game')
+      }
+    }
+  );
 };
 
 const startRound = () => {
@@ -76,24 +115,30 @@ const startRound = () => {
   drawnThisRound = drawnThisRound || new Set();
 
   const playerNames = Object.keys(players);
-  if(playerNames.length < 2) {
+  if (playerNames.length < 2) {
     appState = STATE_IDLE;
     return;
   }
 
   drawingPlayerName = null;
   playerNames.forEach(name => {
-    if(drawingPlayerName) {
+    if (drawingPlayerName) {
       return;
     }
-    if(!drawnThisRound.has(name)) {
+    if (!drawnThisRound.has(name)) {
       drawingPlayerName = name;
     }
   });
 
-  if(!drawingPlayerName) {
+  if (!drawingPlayerName) {
     drawnThisRound.clear();
-    startRound();
+    roundsPlayed++;
+    if (roundsPlayed == MAX_ROUNDS) {
+      endGame();
+    } else {
+      startRound();
+    }
+    return;
   }
 
   word = WORDS[Math.floor(Math.random() * WORDS.length)];
@@ -104,7 +149,8 @@ const startRound = () => {
   playerNames.forEach(name => {
     const message = new StartRoundMessage(
       drawingPlayerName,
-      name === drawingPlayerName ? word : wordHint
+      name === drawingPlayerName ? word : wordHint,
+      roundsPlayed + 1
     );
     players[name].guessed = false;
     players[name].socket.emit(message.getType(), message.getPayload());
@@ -127,7 +173,7 @@ const startRound = () => {
       endRound();
     }
   );
-  console.log(`Starting game, word: ${word}, player ${drawingPlayerName} drawing`);
+  console.log(`Starting round, word: ${word}, player ${drawingPlayerName} drawing`);
   appState = STATE_PLAYING;
 };
 
@@ -167,7 +213,7 @@ const endRound = () => {
       if (Object.keys(players).length >= 2) {
         startRound();
       } else {
-        appState = STATE_IDLE;
+        endGame();
       }
     }
   );
@@ -222,7 +268,7 @@ const wsHandlers = {
 
     if (appState == STATE_PLAYING) {
       roundScores[newPlayerName] = 0;
-      socket.emit(StartRoundMessage.type, new StartRoundMessage(drawingPlayerName, wordHint).getPayload());
+      socket.emit(StartRoundMessage.type, new StartRoundMessage(drawingPlayerName, wordHint, roundsPlayed + 1).getPayload());
     }
 
     playerNames.forEach(oldPlayerName => {
@@ -234,7 +280,7 @@ const wsHandlers = {
     });
 
     if (appState == STATE_IDLE && playerNames.length >= 2) {
-      startRound();
+      startGame();
     }
 
     delete tokens[token];
@@ -304,8 +350,8 @@ io.on('connection', (socket) => {
           console.log(`Player ${name} disconnected!`);
 
           if (name === drawingPlayerName) {
-            if (playerNames.length == 1) {
-              appState = STATE_IDLE;
+            if (playerNames.length < 2) {
+              endGame();
             } else {
               endRound();
             }
@@ -342,7 +388,6 @@ app.use(express.json());
 
 
 app.post('/api/login', (req, res, next) => {
-  console.log(req.body);
   const { login, password, newAccount } = req.body;
   const token = uuid();
 
@@ -382,6 +427,6 @@ app.post('/api/login', (req, res, next) => {
 app.use(function(error, req, res, next) {
   console.error(error);
   res.status(500).send({ message: error })
-})
+});
 
 server.listen(PORT, () => console.log(`Game server is listening on ${PORT}`));

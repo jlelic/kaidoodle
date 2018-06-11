@@ -2,8 +2,9 @@
   <div id="gameHeader">
     <h3>
       {{name}}
-      <span *ngIf="drawingPlayerName && isPlaying">| {{drawingPlayerName}} is drawing</span>
-      <span *ngIf="word">| Word: {{word}}</span>
+      <span *ngIf="drawingPlayerName && isPlaying">| {{drawingPlayerName}} is drawing </span>
+      <span *ngIf="round">| Round: {{round}}/3 </span>
+      <span *ngIf="word">| Word: {{word}} </span>
       <span>| Time: {{time}} s</span>
     </h3>
   </div>
@@ -12,7 +13,7 @@
     <span>
       <span id="canvasContainer">
         <canvas id="gameCanvas" #canvas></canvas>
-        <span id="roundResults" *ngIf="roundResults">
+        <span class="results" *ngIf="roundResults">
           <span>
             <strong>{{drawingPlayerName}}</strong> was drawing <strong>{{word}}</strong>
           </span>
@@ -21,6 +22,16 @@
               <strong>{{result.name}}</strong>: {{result.score}}
             </li>
           </ul>
+        </span>
+        <span class="results" *ngIf="gameResults">
+          <span>
+            <strong>GAME OVER!</strong>
+          </span>
+          <ol>
+            <li *ngFor="let result of gameResults">
+              <strong>{{result.name}}</strong>: {{result.score}}
+            </li>
+          </ol>
         </span>
       </span>
       <span *ngIf="canDraw" id="toolsContainer">

@@ -4,7 +4,8 @@ import { CommunicationService } from '../core/communication.service';
 import * as DrawMessage from '../../../shared/messages/draw-message';
 import * as StartRoundMessage from '../../../shared/messages/start-round-message';
 import * as EndRoundMessage from '../../../shared/messages/end-round-message';
-import * as TimerMessge from '../../../shared/messages/timer-message';
+import * as GameOverMessage from '../../../shared/messages/game-over-message';
+import * as TimerMessage from '../../../shared/messages/timer-message';
 import { PlayersService } from '../core/players.service';
 
 @Component({
@@ -23,6 +24,7 @@ export class GameComponent implements OnInit {
   prevY = null;
   word = '';
   time = 0;
+  round = 0;
 
   thickness = 1;
   color: string;
@@ -30,6 +32,7 @@ export class GameComponent implements OnInit {
   kaiImage;
   isPlaying = false;
   roundResults = null;
+  gameResults = null;
   drawHistory = [];
 
   constructor(private communication: CommunicationService, private players: PlayersService) {
@@ -64,20 +67,32 @@ export class GameComponent implements OnInit {
     this.clearCanvas();
     this.drawHistory = [];
     const x = this.communication.incomingMessages.subscribe(({ type, data }) => {
-      if (type == DrawMessage.type) {
-        this.processDrawMessage(data);
-      } else if (type == StartRoundMessage.type) {
-        this.roundResults = null;
-        this.isPlaying = true;
-        this.word = data.word;
-        this.clearCanvas();
-        this.drawHistory = [];
-      } else if (type == EndRoundMessage.type) {
-        this.isPlaying = false;
-        this.roundResults = this.processRoundResults(data.results);
-        this.word = data.word;
-      } else if (type == TimerMessge.type) {
-        this.time = data.time;
+      switch (type) {
+        case DrawMessage.type:
+          this.processDrawMessage(data);
+          break;
+        case StartRoundMessage.type:
+          this.roundResults = null;
+          this.gameResults = null;
+          this.isPlaying = true;
+          this.word = data.word;
+          this.round = data.round;
+          this.clearCanvas();
+          this.drawHistory = [];
+          break;
+        case EndRoundMessage.type:
+          this.isPlaying = false;
+          this.roundResults = this.processRoundResults(data.results);
+          this.word = data.word;
+          break;
+        case TimerMessage.type:
+          this.time = data.time;
+          break;
+        case GameOverMessage.type:
+          this.gameResults = this.players.players;
+          this.roundResults = null;
+          this.round = 0;
+          break;
       }
     });
   }
@@ -88,7 +103,7 @@ export class GameComponent implements OnInit {
   }
 
   isDrawContinuous(data) {
-    if(!data){
+    if (!data) {
       return false;
     }
     const { x, y, prevX, prevY } = data;

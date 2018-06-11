@@ -14,7 +14,7 @@
   display: block;
 }
 
-#roundResults {
+.results {
   font-size: 2em;
   position: absolute;
   top: 0px;
@@ -24,11 +24,11 @@
   width: 100%;
 }
 
-#roundResults > span {
+.results > span {
   padding: 40px;
 }
 
-#roundResults li {
+.results li {
   padding: 20px;
 }
 
