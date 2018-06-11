@@ -4,7 +4,7 @@
       {{name}}
       <span *ngIf="drawingPlayerName && isPlaying">| {{drawingPlayerName}} is drawing </span>
       <span *ngIf="round">| Round: {{round}}/3 </span>
-      <span *ngIf="word">| Word: {{word}} </span>
+      <span *ngIf="word">| Word: <span id="word"><strong>{{word}}</strong></span> </span>
       <span>| Time: {{time}} s</span>
     </h3>
   </div>

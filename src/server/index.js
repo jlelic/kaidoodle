@@ -185,7 +185,7 @@ const startRound = () => {
   }, 0);
 
   wordHint = word.replace(/[ ]/g, '\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0');
-  wordHint = wordHint.replace(/[a-zA-Z]/g, '＿ ');
+  wordHint = wordHint.replace(/[a-zA-Z]/g, '_ ');
   hintsShown = new Set();
   wordHint = generateWordHint();
 
