@@ -276,7 +276,6 @@ const generateWordHint = (addHint = false) => {
     let newHintIndex;
     do {
       newHintIndex = Math.floor(Math.random() * word.length);
-      console.log(newHintIndex);
     } while (!word[newHintIndex].match(/[a-zA-Z]/) || hintsShown.has(newHintIndex));
     hintsShown.add(newHintIndex);
   }
