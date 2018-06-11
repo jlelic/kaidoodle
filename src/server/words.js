@@ -166,6 +166,5 @@ module.exports = [
   'jaw',
   'dirty sanchez',
   'blue waffle',
-  'axillary intercourse',
   'druid'
 ];

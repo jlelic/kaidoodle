@@ -6,6 +6,7 @@ import * as StartRoundMessage from '../../../shared/messages/start-round-message
 import * as EndRoundMessage from '../../../shared/messages/end-round-message';
 import * as GameOverMessage from '../../../shared/messages/game-over-message';
 import * as TimerMessage from '../../../shared/messages/timer-message';
+import * as WordMessage from '../../../shared/messages/word-message';
 import { PlayersService } from '../core/players.service';
 
 @Component({
@@ -87,6 +88,9 @@ export class GameComponent implements OnInit {
           break;
         case TimerMessage.type:
           this.time = data.time;
+          break;
+        case WordMessage.type:
+          this.word = data.word;
           break;
         case GameOverMessage.type:
           this.gameResults = this.players.players;

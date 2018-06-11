@@ -19,6 +19,7 @@ const EndRoundMessage = require('../shared/messages/end-round-message');
 const PlayerMessage = require('../shared/messages/player-message');
 const PlayerDisconnectedMessage = require('../shared/messages/player-disconnected-message');
 const TimerMessage = require('../shared/messages/timer-message');
+const WordMessage = require('../shared/messages/word-message');
 
 const incomingMessages = [HandshakeMessage, DrawMessage, ChatMessage, 'disconnect'];
 
@@ -39,6 +40,7 @@ const SERVER_NAME = 'Server';
 const ROUND_TIME_BASE = 80;
 const ROUND_TIME_REDUCTION = 5;
 const ROUND_TIME_MINIMUM = 10;
+const ROUND_TIME_HINT_START = 30;
 
 const SCORE_BONUS_FIRST = 4;
 const SCORE_BONUS_MAX = 6;
@@ -57,7 +59,9 @@ const chatHistory = [];
 let appState = STATE_IDLE;
 let drawingPlayerName = '';
 let word;
+let wordCharLength;
 let wordHint;
+let hintsShown;
 let guessingTime;
 let timerUpdateInterval;
 let roundScores;
@@ -142,8 +146,17 @@ const startRound = () => {
   }
 
   word = WORDS[Math.floor(Math.random() * WORDS.length)];
+  wordCharLength = word.split('').reduce((length, char) => {
+    if (char.match(/[a-zA-Z]/)) {
+      return length + 1
+    }
+    return length;
+  }, 0);
+
   wordHint = word.replace(/[ ]/g, '\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0');
   wordHint = wordHint.replace(/[a-zA-Z]/g, '＿ ');
+  hintsShown = new Set();
+  wordHint = generateWordHint();
 
   roundScores = {};
   playerNames.forEach(name => {
@@ -166,6 +179,7 @@ const startRound = () => {
     (elapsedTime) => {
       remainingTime = guessingTime - elapsedTime;
       sendToAllPlayers(new TimerMessage(remainingTime));
+      checkWordHintAvailable(remainingTime);
       return remainingTime <= 0;
     },
     () => {
@@ -229,6 +243,13 @@ const checkEveryoneGuessed = () => {
   return result;
 };
 
+const checkWordHintAvailable = (time) => {
+  const maxHints = Math.ceil(wordCharLength / 3);
+  if (time <= ROUND_TIME_HINT_START * (maxHints - hintsShown.size) / maxHints)
+    wordHint = generateWordHint(true);
+  players[drawingPlayerName].socket.broadcast.emit(WordMessage.type, new WordMessage(wordHint).getPayload());
+};
+
 const getUnixTime = () => {
   return Math.round((new Date()).getTime() / 1000);
 };
@@ -248,6 +269,32 @@ const startTimer = (updateCallback, doneCallback) => {
 
 const sendToAllPlayers = (message) => {
   io.sockets.emit(message.getType(), message.getPayload());
+};
+
+const generateWordHint = (addHint = false) => {
+  if (addHint && hintsShown.size < wordCharLength) {
+    let newHintIndex;
+    do {
+      newHintIndex = Math.floor(Math.random() * word.length);
+      console.log(newHintIndex);
+    } while (!word[newHintIndex].match(/[a-zA-Z]/) || hintsShown.has(newHintIndex));
+    hintsShown.add(newHintIndex);
+  }
+  let result = '';
+  word.split('').forEach((char, i) => {
+    if (hintsShown.has(i)) {
+      result += `${char}\u00A0`;
+    }
+    else if (char.match(/[a-zA-Z]/)) {
+      result += '＿\u00A0'
+    } else if (char === ' ') {
+      result += '\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0';
+    } else {
+      result += `${char}\u00A0`;
+    }
+  });
+
+  return result;
 };
 
 const wsHandlers = {
