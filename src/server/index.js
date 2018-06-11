@@ -346,6 +346,8 @@ const wsHandlers = {
     if (gameState == STATE_PLAYING) {
       roundScores[newPlayerName] = 0;
       socket.emit(StartRoundMessage.type, new StartRoundMessage(drawingPlayerName, wordHint, roundsPlayed + 1).getPayload());
+    } else if (gameState == STATE_CHOOSING_WORD) {
+      socket.emit(ChatMessage.type, new ChatMessage(SERVER_NAME, `${drawingPlayerName} is choosing the word`).getPayload());
     }
 
     playerNames.forEach(oldPlayerName => {
