@@ -8,11 +8,22 @@ export class SoundsService {
 
   constructor() {
     this.audio = new Audio;
-    this.audio.src = 'assets/sounds/ok.wav';
   }
 
   playOk() {
-    this.audio.play();
+    this.playRandomSound(['ok']);
   }
 
+  playLoss() {
+    this.playRandomSound(['zobrat-beta-key']);
+  }
+
+  playOneLeft() {
+    this.playRandomSound(['to-je-retardacia']);
+  }
+
+  private playRandomSound(soundNames:string[]) {
+    this.audio.src = `assets/sounds/${soundNames[Math.floor(Math.random()*soundNames.length)]}.wav`;
+    this.audio.play();
+  }
 }

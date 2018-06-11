@@ -46,6 +46,7 @@ const TIME_ROUND_HINT_START = 30;
 const TIME_WORD_CHOOSE = 10;
 const TIME_COOLDOWN = 5;
 
+const SCORE_NO_CORRECT_GUESSES = -10;
 const SCORE_BONUS_FIRST = 4;
 const SCORE_BONUS_MAX = 6;
 const SCORE_BONUS_REDUCTION = 1;
@@ -238,7 +239,7 @@ const endRound = () => {
     }
   });
 
-  const drawingPlayerScore = Math.round(winnerScore * playersGuessed / playersGuessing);
+  const drawingPlayerScore = playersGuessed > 0 ? Math.round(winnerScore * playersGuessed / playersGuessing) : SCORE_NO_CORRECT_GUESSES;
   roundScores[drawingPlayerName] = drawingPlayerScore;
   if (players[drawingPlayerName]) {
     players[drawingPlayerName].score += drawingPlayerScore;

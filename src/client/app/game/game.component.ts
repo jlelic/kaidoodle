@@ -10,6 +10,7 @@ import * as WordMessage from '../../../shared/messages/word-message';
 import * as WordChoicesMessage from '../../../shared/messages/word-choices-message';
 
 import { PlayersService } from '../core/players.service';
+import { SoundsService } from '../core/sounds.service';
 
 @Component({
   selector: 'app-game',
@@ -41,7 +42,7 @@ export class GameComponent implements OnInit {
   gameResults = null;
   drawHistory = [];
 
-  constructor(private communication: CommunicationService, private players: PlayersService) {
+  constructor(private communication: CommunicationService, private players: PlayersService, private sounds: SoundsService) {
   }
 
   get name() {
@@ -90,6 +91,12 @@ export class GameComponent implements OnInit {
         case EndRoundMessage.type:
           this.isPlaying = false;
           this.roundResults = this.processRoundResults(data.results);
+          if (data.results[this.players.drawing] < 0) {
+            this.sounds.playLoss();
+          }
+          if (this.roundResults.filter(({ score }) => score == 0).length == 1) {
+            this.sounds.playOneLeft();
+          }
           this.word = data.word;
           break;
         case TimerMessage.type:
@@ -193,7 +200,7 @@ export class GameComponent implements OnInit {
   }
 
   onMouseMove(event: MouseEvent) {
-    if(this.startedClickOnCanvas) {
+    if (this.startedClickOnCanvas) {
       event.preventDefault();
     } else {
       return;
