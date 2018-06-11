@@ -36,4 +36,5 @@
 .chatMessage {
   flex: 0 1 40px;
   display: inherit;
+  padding: 4px;
 }
