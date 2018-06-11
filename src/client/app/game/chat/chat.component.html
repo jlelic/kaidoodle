@@ -6,7 +6,7 @@
   </span>
   </div>
   <form [formGroup]="form" (submit)="onSubmit($event)">
-    <input id="chatInput" type="text" formControlName="input" placeholder="Type your guess here" autofocus/>
+    <input id="chatInput" type="text" formControlName="input" placeholder="Type your guess here" autofocus #chatInput/>
     <button id="chatSendButton" (click)="onSubmit($event)">Send</button>
   </form>
 </div>

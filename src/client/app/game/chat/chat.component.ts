@@ -14,6 +14,8 @@ import * as ChatMessage from '../../../../shared/messages/chat-message';
 })
 export class ChatComponent implements OnInit, AfterViewChecked  {
   @ViewChild('chatHistory') private chatHistoryElement: ElementRef;
+  @ViewChild('chatInput') private chatInput: ElementRef;
+
   form: FormGroup;
   messages = [];
   keepScrollingToBottom = true;
@@ -23,12 +25,15 @@ export class ChatComponent implements OnInit, AfterViewChecked  {
       if (type === ChatMessage.type){
         this.processChatMessage(data);
       }
-    })
+    });
   }
 
   ngOnInit() {
     this.buildForm();
     this.scrollToBottom();
+    window.addEventListener('keydown', e => {
+      this.chatInput.nativeElement.focus()
+    });
   }
 
   ngAfterViewChecked() {
