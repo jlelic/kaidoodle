@@ -93,8 +93,7 @@ export class GameComponent implements OnInit {
           this.roundResults = this.processRoundResults(data.results);
           if (data.results[this.players.drawing] < 0) {
             this.sounds.playLoss();
-          }
-          if (this.roundResults.filter(({ score }) => score == 0).length == 1) {
+          } else if (this.roundResults.filter(({ score }) => score == 0).length == 1) {
             this.sounds.playOneLeft();
           }
           this.word = data.word;
