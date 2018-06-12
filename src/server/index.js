@@ -74,10 +74,14 @@ let scoreBonus;
 let winnerScore;
 let drawnThisRound;
 let roundsPlayed;
+let gameId;
 
 const startGame = () => {
   roundsPlayed = 0;
+  gameId = uuid();
   const playerNames = Object.keys(players);
+
+  console.log(`Starting new game ${gameId}`);
 
   if (playerNames.length < 2) {
     return;
@@ -88,7 +92,11 @@ const startGame = () => {
     sendToAllPlayers(new PlayerMessage(name, players[name]));
   });
   sendToAllPlayers(new ChatMessage(SERVER_NAME, 'Starting new game'));
-  console.log('Starting new game');
+
+  UserModel.where({ login: { $in: playerNames } })
+    .updateMany({ $set: { lastGameId: gameId, score: 0 } })
+    .then(() => {}); // :(
+
   prepareRound();
 };
 
@@ -242,6 +250,7 @@ const endRound = () => {
   roundScores[drawingPlayerName] = drawingPlayerScore;
   if (players[drawingPlayerName]) {
     players[drawingPlayerName].score += drawingPlayerScore;
+    updatePlayerScoreInDb(drawingPlayerName);
     sendToAllPlayers(new PlayerMessage(drawingPlayerName, players[drawingPlayerName]));
   }
 
@@ -279,6 +288,12 @@ const checkWordHintAvailable = (time) => {
   if (time <= TIME_ROUND_HINT_START * (maxHints - hintsShown.size) / maxHints)
     wordHint = generateWordHint(true);
   players[drawingPlayerName].socket.broadcast.emit(WordMessage.type, new WordMessage(wordHint).getPayload());
+};
+
+const updatePlayerScoreInDb = (login) => {
+  UserModel.findOne({ login })
+    .update({ $set: { score: players[login].score } })
+    .then(() => {});
 };
 
 const getUnixTime = () => {
@@ -331,7 +346,8 @@ const wsHandlers = {
   [HandshakeMessage.type]: (socket, data) => {
     const { token } = data;
     UserModel.findOne({ token })
-      .then(({ login }) => {
+      .then(user => {
+        let { login, score, lastGameId } = user;
         const newPlayerName = login;
         if (!newPlayerName) {
           console.error(`Unknown player token ${token}!`);
@@ -341,7 +357,16 @@ const wsHandlers = {
         socket.emit(HandshakeMessage.type, { name: newPlayerName });
         drawHistory.forEach((data) => socket.emit(DrawMessage.type, data));
         chatHistory.forEach((data) => socket.emit(ChatMessage.type, data));
-        players[newPlayerName] = { socket, score: 0, guessed: false };
+
+        if(lastGameId !== gameId) {
+          score = 0;
+          user.lastGameId = gameId;
+          user.save().then(() => {});
+        } else {
+          console.log(`Reconnected with ${score}`);
+        }
+
+        players[newPlayerName] = { socket, score, guessed: false };
 
         const playerNames = Object.keys(players);
 
@@ -353,11 +378,11 @@ const wsHandlers = {
         }
 
         playerNames.forEach(oldPlayerName => {
+          players[oldPlayerName].socket.emit(PlayerMessage.type, new PlayerMessage(newPlayerName, players[newPlayerName]).getPayload());
           if (oldPlayerName == newPlayerName) {
             return;
           }
-          players[oldPlayerName].socket.emit(PlayerMessage.type, new PlayerMessage(newPlayerName, players[oldPlayerName]).getPayload());
-          players[newPlayerName].socket.emit(PlayerMessage.type, new PlayerMessage(oldPlayerName, players[newPlayerName]).getPayload());
+          players[newPlayerName].socket.emit(PlayerMessage.type, new PlayerMessage(oldPlayerName, players[oldPlayerName]).getPayload());
         });
 
         if (gameState == STATE_IDLE && playerNames.length >= 2) {
@@ -392,6 +417,9 @@ const wsHandlers = {
       if (checkEveryoneGuessed()) {
         endRound();
       }
+
+      updatePlayerScoreInDb(playerName);
+
       return;
     }
     socket.broadcast.emit(ChatMessage.type, data);
@@ -515,7 +543,7 @@ app.post('/api/login', (req, res, next) => {
 
 
 app.post('/api/autoLogin', (req, res, next) => {
-  const { token} = req.body;
+  const { token } = req.body;
 
   UserModel.findOne({ token })
     .then(user => {

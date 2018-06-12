@@ -6,6 +6,8 @@ const mongoose = require('mongoose'),
 const UserSchema = new Schema({
   login: { type: String, required: true, index: { unique: true } },
   password: { type: String, required: true },
+  score: { type: Number },
+  lastGameId: { type: String },
   token: { type: String }
 });
 
