@@ -91,7 +91,7 @@ const startGame = () => {
     players[name].score = 0;
     sendToAllPlayers(new PlayerMessage(name, players[name]));
   });
-  sendToAllPlayers(new ChatMessage(SERVER_NAME, 'Starting new game'));
+  sendChatMessageToAllPlayers('Starting new game');
 
   UserModel.where({ login: { $in: playerNames } })
     .updateMany({ $set: { lastGameId: gameId, score: 0 } })
@@ -105,7 +105,7 @@ const endGame = () => {
 
   gameState = STATE_IDLE;
 
-  sendToAllPlayers(new ChatMessage(SERVER_NAME, 'Game over!'));
+  sendChatMessageToAllPlayers('Game over!');
   sendToAllPlayers(new GameOverMessage());
   console.log('Game over');
 
@@ -165,7 +165,7 @@ const prepareRound = () => {
   const words = [...wordIndices].map(i => WORDS[i]);
   console.log(`Preparing round, drawing ${drawingPlayerName}, choices: ${words.join(', ')}`);
   players[drawingPlayerName].socket.emit(WordChoicesMessage.type, new WordChoicesMessage(words).getPayload());
-  sendToAllPlayers(new ChatMessage(SERVER_NAME, `${drawingPlayerName} is choosing the word`));
+  sendChatMessageToAllPlayers(`${drawingPlayerName} is choosing the word`);
 
   gameState = STATE_CHOOSING_WORD;
 
@@ -208,7 +208,7 @@ const startRound = () => {
     players[name].socket.emit(message.getType(), message.getPayload());
     roundScores[name] = 0;
   });
-  sendToAllPlayers(new ChatMessage(SERVER_NAME, `${drawingPlayerName} is drawing now!`));
+  sendChatMessageToAllPlayers(`${drawingPlayerName} is drawing now!`);
 
   guessingTime = TIME_ROUND_BASE;
   remainingTime = guessingTime;
@@ -222,7 +222,7 @@ const startRound = () => {
       return remainingTime <= 0;
     },
     () => {
-      sendToAllPlayers(new ChatMessage(SERVER_NAME, `Round over, the word was "${word}"`));
+      sendChatMessageToAllPlayers(`Round over, the word was "${word}"`);
       endRound();
     }
   );
@@ -313,6 +313,10 @@ const startTimer = (updateCallback, doneCallback) => {
   return intervalId;
 };
 
+const sendChatMessageToAllPlayers = (text) => {
+  sendToAllPlayers(new ChatMessage(SERVER_NAME, text));
+};
+
 const sendToAllPlayers = (message) => {
   io.sockets.emit(message.getType(), message.getPayload());
 };
@@ -384,6 +388,8 @@ const wsHandlers = {
           }
           players[newPlayerName].socket.emit(PlayerMessage.type, new PlayerMessage(oldPlayerName, players[oldPlayerName]).getPayload());
         });
+
+        sendChatMessageToAllPlayers(`${login} connected`);
 
         if (gameState == STATE_IDLE && playerNames.length >= 2) {
           startGame();
@@ -464,6 +470,7 @@ io.on('connection', (socket) => {
           socket.broadcast.emit(PlayerDisconnectedMessage.type, { name });
           delete players[name];
           console.log(`Player ${name} disconnected!`);
+          sendChatMessageToAllPlayers(`${name} disconnected`);
 
           if (name === drawingPlayerName) {
             if (playerNames.length < 2) {
