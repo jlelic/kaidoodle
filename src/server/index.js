@@ -161,29 +161,32 @@ const prepareRound = () => {
     return;
   }
 
-  const wordIndices = new Set();
-  while (wordIndices.size < 3) {
-    wordIndices.add(Math.floor(Math.random() * WORDS.length));
-  }
-
-  const words = [...wordIndices].map(i => WORDS[i]);
-  console.log(`Preparing round, drawing ${drawingPlayerName}, choices: ${words.join(', ')}`);
-  players[drawingPlayerName].socket.emit(WordChoicesMessage.type, new WordChoicesMessage(words).getPayload());
-  sendChatMessageToAllPlayers(`${drawingPlayerName} is choosing a word`);
-
-  gameState = STATE_CHOOSING_WORD;
-
-  timerUpdateInterval = startTimer(
-    (elapsedTime) => {
-      remainingTime = TIME_WORD_CHOOSE - elapsedTime;
-      sendToAllPlayers(new TimerMessage(remainingTime));
-      return remainingTime <= 0;
-    },
-    () => {
-      word = words[0];
-      startRound();
+  WordModel.findRandom({}, {}, { limit: 3 }, function(err, randomWords) { // dooes't work with promises :(
+    if (err) {
+      endGame();
+      sendChatMessageToAllPlayers('Error occured');
+      console.log(err);
+      return;
     }
-  );
+    const words = randomWords.map(({ word }) => word);
+    console.log(`Preparing round, drawing ${drawingPlayerName}, choices: ${words.join(', ')}`);
+    players[drawingPlayerName].socket.emit(WordChoicesMessage.type, new WordChoicesMessage(words).getPayload());
+    sendChatMessageToAllPlayers(`${drawingPlayerName} is choosing a word`);
+
+    gameState = STATE_CHOOSING_WORD;
+
+    timerUpdateInterval = startTimer(
+      (elapsedTime) => {
+        remainingTime = TIME_WORD_CHOOSE - elapsedTime;
+        sendToAllPlayers(new TimerMessage(remainingTime));
+        return remainingTime <= 0;
+      },
+      () => {
+        word = words[0];
+        startRound();
+      }
+    );
+  });
 };
 
 const startRound = () => {
@@ -564,7 +567,7 @@ app.post('/api/autoLogin', (req, res, next) => {
 
   UserModel.findOne({ token })
     .then(user => {
-      if(!user) {
+      if (!user) {
         throw 'Login token invalid!'
       }
       const token = uuid();
