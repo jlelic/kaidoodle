@@ -96,7 +96,8 @@ const startGame = () => {
 
   UserModel.where({ login: { $in: playerNames } })
     .updateMany({ $set: { lastGameId: gameId, score: 0 } })
-    .then(() => {}); // :(
+    .then(() => {
+    }); // :(
 
   prepareRound();
 };
@@ -294,7 +295,8 @@ const checkWordHintAvailable = (time) => {
 const updatePlayerScoreInDb = (login) => {
   UserModel.findOne({ login })
     .update({ $set: { score: players[login].score } })
-    .then(() => {});
+    .then(() => {
+    });
 };
 
 const getUnixTime = () => {
@@ -363,10 +365,11 @@ const wsHandlers = {
         drawHistory.forEach((data) => socket.emit(DrawMessage.type, data));
         chatHistory.forEach((data) => socket.emit(ChatMessage.type, data));
 
-        if(lastGameId !== gameId) {
+        if (lastGameId !== gameId) {
           score = 0;
           user.lastGameId = gameId;
-          user.save().then(() => {});
+          user.save().then(() => {
+          });
         } else {
           console.log(`Reconnected with ${score}`);
         }
@@ -428,10 +431,8 @@ const wsHandlers = {
       updatePlayerScoreInDb(playerName);
 
       return;
-    } else {
-      if(leven(data.text, word) == 1) {
-        socket.emit(ChatMessage.type, new ChatMessage(SERVER_NAME, `${data.text} is close!`).getPayload());
-      }
+    } else if (data.text && word && leven(data.text, word) == 1) {
+      socket.emit(ChatMessage.type, new ChatMessage(SERVER_NAME, `${data.text} is close!`).getPayload());
       return;
     }
     socket.broadcast.emit(ChatMessage.type, data);
