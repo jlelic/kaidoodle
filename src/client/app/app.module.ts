@@ -3,8 +3,7 @@ import { NgModule } from '@angular/core';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http'
 import {
-  MatSliderModule,
-  MatSlideToggleModule,
+  MatButtonModule
 } from '@angular/material';
 
 import { AppComponent } from './app.component';
@@ -36,8 +35,7 @@ const appRoutes: Routes = [
     GameModule,
     HttpClientModule,
     ReactiveFormsModule,
-    MatSliderModule,
-    MatSlideToggleModule,
+    MatButtonModule,
     RouterModule.forRoot(
       appRoutes,
       { enableTracing: false } // <-- debugging purposes only

@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 
 import { AuthService } from '../core/auth.service';
 
@@ -9,7 +10,7 @@ import { AuthService } from '../core/auth.service';
 })
 export class MenuComponent implements OnInit {
 
-  constructor(private auth: AuthService) { }
+  constructor(private auth: AuthService, private router: Router) { }
 
   get name(): string {
     return this.auth.loginName;
@@ -18,4 +19,8 @@ export class MenuComponent implements OnInit {
   ngOnInit() {
   }
 
+  onLogout() {
+    this.auth.logout();
+    this.router.navigate(['']);
+  }
 }

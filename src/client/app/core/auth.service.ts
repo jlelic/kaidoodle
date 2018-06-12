@@ -34,6 +34,11 @@ export class AuthService {
       .do((x) => this.storeProfile(x));
   }
 
+  logout() {
+    this.token = null;
+    this.cookies.deleteCookie(this.COOKIE_TOKEN);
+  }
+
   storeProfile(data) {
     this.token = data.token;
     this._loginName = data.login;
