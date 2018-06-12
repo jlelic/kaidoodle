@@ -25,7 +25,7 @@ export class AppComponent implements OnInit{
       this.auth.autoLogin(token)
         .subscribe(
           () => {
-            this.router.navigate(['/menu'])
+            // this.router.navigate(['/menu'])
           },
           data => console.error(data.error.message)
         )

@@ -6,8 +6,10 @@ const app = express();
 const server = require('http').createServer(app);
 const io = require('socket.io')(server);
 const leven = require('leven');
+const checkWord = (require('check-word')('en'));
 
 const UserModel = require('./models/user');
+const WordModel = require('./models/word');
 
 const WORDS = require('./words');
 
@@ -424,11 +426,13 @@ const wsHandlers = {
       sendToAllPlayers(new PlayerMessage(playerName, players[playerName]));
       if (remainingTime > 10)
         guessingTime = guessingTime - Math.min(TIME_ROUND_REDUCTION, Math.max(0, remainingTime - TIME_ROUND_MINIMUM));
+
+      updatePlayerScoreInDb(playerName);
+
       if (checkEveryoneGuessed()) {
         endRound();
       }
 
-      updatePlayerScoreInDb(playerName);
 
       return;
     } else if (data.text && word && leven(data.text, word) == 1) {
@@ -555,12 +559,14 @@ app.post('/api/login', (req, res, next) => {
     .catch(err => next(err));
 });
 
-
 app.post('/api/autoLogin', (req, res, next) => {
   const { token } = req.body;
 
   UserModel.findOne({ token })
     .then(user => {
+      if(!user) {
+        throw 'Login token invalid!'
+      }
       const token = uuid();
       user.token = token;
       return user.save();
@@ -569,7 +575,68 @@ app.post('/api/autoLogin', (req, res, next) => {
     .catch(err => next(err));
 });
 
-app.use(function(error, req, res, next) {
+app.get('/api/words', (req, res, next) => {
+  WordModel.find({})
+    .then(words => res.json(words))
+    .catch(err => next(err));
+});
+
+app.post('/api/words', (req, res, next) => {
+  const allWords = req.body.words.map(word => word.toLowerCase());
+  const addedBy = req.body.author;
+  const force = req.body.force;
+
+  const validWords = [];
+  const invalid = [];
+  const short = [];
+  allWords.forEach(word => {
+    let isValid = false;
+    try {
+      isValid = checkWord.check(word);
+    } catch (err) {
+    }
+    if (!word || (!force && !isValid)) {
+      invalid.push(word)
+    } else if (word.length < 3) {
+      short.push(word)
+    } else {
+      validWords.push({ word, addedBy })
+    }
+  });
+
+  WordModel.insertMany(validWords, { ordered: false })
+    .then((x) => {
+      res.json({
+        added: validWords.map(({ word }) => word),
+        invalid
+      });
+    })
+    .catch(err => {
+      if (err.code == 11000) {
+        err.writeErrors = [err];
+      }
+      if (!err.writeErrors) {
+        throw err;
+      }
+      const addedSet = new Set(validWords.map(({ word }) => word));
+      const duplicate = [];
+      const error = [];
+      err.writeErrors.forEach(we => {
+        const word = we.getOperation().word;
+        addedSet.delete(word);
+        if (we.code == 11000) {
+          duplicate.push(word);
+        } else {
+          error.push(word);
+        }
+      });
+      const added = [...addedSet];
+      res.json({ added, short, duplicate, error, invalid });
+    })
+    .catch(err => next(err));
+});
+
+app.use((error, req, res, next) => {
   console.error(error);
   res.status(500).send({ message: error.toString() })
 });

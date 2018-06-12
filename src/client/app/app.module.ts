@@ -14,11 +14,12 @@ import { ErrorComponent } from './error/error.component';
 import { GameModule } from "./game/game.module";
 import { CoreModule } from './core/core.module';
 import { MenuComponent } from './menu/menu.component';
+import { WordsModule } from './words/words.module';
 
 const appRoutes: Routes = [
   { path: '', component: LoginComponent },
   { path: 'menu', component: MenuComponent },
-  { path: 'game',      component: GameComponent },
+  { path: 'game', component: GameComponent },
   { path: '**', component: ErrorComponent }
 ];
 
@@ -39,10 +40,12 @@ const appRoutes: Routes = [
     RouterModule.forRoot(
       appRoutes,
       { enableTracing: false } // <-- debugging purposes only
-    )
+    ),
+    WordsModule
   ],
   providers: [
   ],
   bootstrap: [AppComponent]
 })
-export class AppModule { }
+export class AppModule {
+}

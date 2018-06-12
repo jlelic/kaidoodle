@@ -1,0 +1,21 @@
+<button [routerLink]="['/words']">Back</button><br/><br/><br/>
+<div>Type each word on a separate line and press "Send"</div>
+<button (click)="onSend()">Send</button>
+<div>
+<textarea #input></textarea>
+</div>
+<div *ngIf="loading">Please wait...</div>
+
+<div *ngIf="error">
+  ERROR: {{error}}
+</div>
+
+<div *ngIf="results">
+  <div *ngFor="let state of ['added', 'duplicate', 'invalid', 'error']">
+    <div *ngIf="results[state] && results[state].length">
+      <strong>{{state}} words:</strong>
+      <div *ngFor="let word of results[state]">{{word}}</div>
+      <br><br/>
+    </div>
+  </div>
+</div>

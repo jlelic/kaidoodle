@@ -1,9 +1,6 @@
 <h2> Welcome {{ name }}</h2>
-<button (click)="onLogout()" mat-button>Log out</button>
-<br>
-<br>
-<br>
-<br>
 <div>
-  <a [routerLink]="['/game']">Play the game you retard</a>
+  <button [routerLink]="['/game']" mat-button>Play</button>
+  <button [routerLink]="['/words']" mat-button>Words</button>
+  <button (click)="onLogout()" mat-button>Log out</button>
 </div>
