@@ -5,6 +5,7 @@ const express = require('express');
 const app = express();
 const server = require('http').createServer(app);
 const io = require('socket.io')(server);
+const leven = require('leven');
 
 const UserModel = require('./models/user');
 
@@ -426,6 +427,11 @@ const wsHandlers = {
 
       updatePlayerScoreInDb(playerName);
 
+      return;
+    } else {
+      if(leven(data.text, word) == 1) {
+        socket.emit(ChatMessage.type, new ChatMessage(SERVER_NAME, `${data.text} is close!`).getPayload());
+      }
       return;
     }
     socket.broadcast.emit(ChatMessage.type, data);
