@@ -14,9 +14,11 @@ import { GameComponent } from './game/game.component';
 import { ErrorComponent } from './error/error.component';
 import { GameModule } from "./game/game.module";
 import { CoreModule } from './core/core.module';
+import { MenuComponent } from './menu/menu.component';
 
 const appRoutes: Routes = [
   { path: '', component: LoginComponent },
+  { path: 'menu', component: MenuComponent },
   { path: 'game',      component: GameComponent },
   { path: '**', component: ErrorComponent }
 ];
@@ -25,7 +27,8 @@ const appRoutes: Routes = [
   declarations: [
     AppComponent,
     LoginComponent,
-    ErrorComponent
+    ErrorComponent,
+    MenuComponent
   ],
   imports: [
     BrowserModule,

@@ -42,7 +42,7 @@ export class LoginComponent implements OnInit {
       .subscribe(
         ({ token }) => {
           this.communication.token = token;
-          this.router.navigate(['/game'])
+          this.router.navigate(['/menu'])
         },
         data => this.error = data.error.message
       );
