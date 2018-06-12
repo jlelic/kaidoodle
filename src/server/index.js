@@ -412,7 +412,7 @@ const wsHandlers = {
       console.error(`${playerName} is trying to send chat message under name ${data.sender}`);
     }
     data.sender = playerName;
-    if (gameState == STATE_PLAYING && playerName != drawingPlayerName && data.text.toLowerCase() === word.toLowerCase()) {
+    if (gameState == STATE_PLAYING && word && data.text && playerName != drawingPlayerName && data.text.toLowerCase() === word.toLowerCase()) {
       const score = SCORE_BASE + Math.round(Math.min(SCORE_TIME_MAXIMUM, remainingTime * SCORE_TIME_MULTIPLIER)) + scoreBonus + (winnerScore ? 0 : SCORE_BONUS_FIRST);
       winnerScore = winnerScore || score;
       scoreBonus -= SCORE_BONUS_REDUCTION;

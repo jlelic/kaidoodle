@@ -1,5 +1,5 @@
 import { AfterViewChecked, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms'
+import { FormBuilder, FormGroup, Validators } from '@angular/forms'
 
 import { CommunicationService } from '../../core/communication.service';
 import { SoundsService } from '../../core/sounds.service';
@@ -12,7 +12,7 @@ import * as ChatMessage from '../../../../shared/messages/chat-message';
   templateUrl: './chat.component.html',
   styleUrls: ['./chat.component.css']
 })
-export class ChatComponent implements OnInit, AfterViewChecked  {
+export class ChatComponent implements OnInit, AfterViewChecked {
   @ViewChild('chatHistory') private chatHistoryElement: ElementRef;
   @ViewChild('chatInput') private chatInput: ElementRef;
 
@@ -21,8 +21,8 @@ export class ChatComponent implements OnInit, AfterViewChecked  {
   keepScrollingToBottom = true;
 
   constructor(private communication: CommunicationService, private fb: FormBuilder, private sounds: SoundsService) {
-    this.communication.incomingMessages.subscribe(({type, data}) => {
-      if (type === ChatMessage.type){
+    this.communication.incomingMessages.subscribe(({ type, data }) => {
+      if (type === ChatMessage.type) {
         this.processChatMessage(data);
       }
     });
@@ -37,24 +37,22 @@ export class ChatComponent implements OnInit, AfterViewChecked  {
   }
 
   ngAfterViewChecked() {
-    if(this.keepScrollingToBottom) {
+    if (this.keepScrollingToBottom) {
       this.scrollToBottom();
     }
   }
 
   buildForm() {
-    this.form = this.fb.group(
-      {
-        input: ''
-      }
-    );
+    this.form = this.fb.group({
+      input: ['', Validators.required]
+    });
   }
 
   processChatMessage(data) {
     const el = this.chatHistoryElement.nativeElement;
-    this.keepScrollingToBottom =  data.sender == this.communication.name || el.scrollHeight - el.offsetHeight - el.scrollTop < 5;
+    this.keepScrollingToBottom = data.sender == this.communication.name || el.scrollHeight - el.offsetHeight - el.scrollTop < 5;
 
-    if(data.sender=== 'Server' && data.text.startsWith('You guessed the word')) {
+    if (data.sender === 'Server' && data.text.startsWith('You guessed the word')) {
       this.sounds.playOk();
     }
 
@@ -64,6 +62,9 @@ export class ChatComponent implements OnInit, AfterViewChecked  {
   onSubmit(event) {
     event.preventDefault();
     const { input } = this.form.value;
+    if(!input || !input.length) {
+      return;
+    }
     const message = new ChatMessage(this.communication.name, input);
     this.processChatMessage(message.getPayload());
     this.communication.send(message);
@@ -71,8 +72,6 @@ export class ChatComponent implements OnInit, AfterViewChecked  {
   }
 
   scrollToBottom(force = false): void {
-    try {
       this.chatHistoryElement.nativeElement.scrollTop = this.chatHistoryElement.nativeElement.scrollHeight;
-    } catch(err) { }
   }
 }
