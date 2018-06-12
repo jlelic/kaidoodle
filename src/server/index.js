@@ -166,7 +166,7 @@ const prepareRound = () => {
   const words = [...wordIndices].map(i => WORDS[i]);
   console.log(`Preparing round, drawing ${drawingPlayerName}, choices: ${words.join(', ')}`);
   players[drawingPlayerName].socket.emit(WordChoicesMessage.type, new WordChoicesMessage(words).getPayload());
-  sendChatMessageToAllPlayers(`${drawingPlayerName} is choosing the word`);
+  sendChatMessageToAllPlayers(`${drawingPlayerName} is choosing a word`);
 
   gameState = STATE_CHOOSING_WORD;
 
@@ -379,7 +379,7 @@ const wsHandlers = {
           roundScores[newPlayerName] = 0;
           socket.emit(StartRoundMessage.type, new StartRoundMessage(drawingPlayerName, wordHint, roundsPlayed + 1).getPayload());
         } else if (gameState == STATE_CHOOSING_WORD) {
-          socket.emit(ChatMessage.type, new ChatMessage(SERVER_NAME, `${drawingPlayerName} is choosing the word`).getPayload());
+          socket.emit(ChatMessage.type, new ChatMessage(SERVER_NAME, `${drawingPlayerName} is choosing a word`).getPayload());
         }
 
         playerNames.forEach(oldPlayerName => {
