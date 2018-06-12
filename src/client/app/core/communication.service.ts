@@ -3,6 +3,7 @@ import { Subject } from 'rxjs/Subject';
 import * as io from 'socket.io-client';
 
 import * as HandshakeMessage from '../../../shared/messages/handshake-message';
+import { AuthService } from './auth.service';
 
 interface Message {
   getType;
@@ -14,11 +15,11 @@ export class CommunicationService {
 
   socket;
   serverUrl = window.location.origin;
-  token: string;
+
   private _name: string;
   private _incomingMessages: Subject<any>;
 
-  constructor() {
+  constructor(private auth: AuthService) {
     this._incomingMessages = new Subject();
   }
 
@@ -31,7 +32,7 @@ export class CommunicationService {
   }
 
   init() {
-    if (!this.token) {
+    if (!this.auth.token) {
       throw 'Token missing!';
     }
 
@@ -47,7 +48,7 @@ export class CommunicationService {
 
     this.socket.on('connect', () => {
       console.log('Websocket connection established.');
-      this.send(new HandshakeMessage(this.token))
+      this.send(new HandshakeMessage(this.auth.token))
     });
 
     this.socket.on([HandshakeMessage.type], ({ name }) => {

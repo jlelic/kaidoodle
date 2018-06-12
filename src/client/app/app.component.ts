@@ -1,20 +1,34 @@
-import { Component } from '@angular/core';
-import { CommunicationService } from './core/communication.service';
-import * as HandshakeMessage from '../../shared/messages/handshake-message';
+import { Component, OnInit } from '@angular/core';
+
+import { AuthService } from './core/auth.service';
+import { CookiesService } from './core/cookies.service';
+import { Router } from "@angular/router";
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent {
+export class AppComponent implements OnInit{
   title = 'app';
 
-  constructor(private communication: CommunicationService){
-
+  constructor(
+    private auth: AuthService,
+    private cookies: CookiesService,
+    private router: Router
+  ){
   }
 
-  send(){
-    this.communication.send(new HandshakeMessage())
+  ngOnInit() {
+    const token = this.cookies.getCookie(this.auth.COOKIE_TOKEN);
+    if (token) {
+      this.auth.autoLogin(token)
+        .subscribe(
+          () => {
+            this.router.navigate(['/menu'])
+          },
+          data => console.error(data.error.message)
+        )
+    }
   }
 }

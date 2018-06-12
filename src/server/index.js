@@ -56,7 +56,6 @@ const SCORE_BASE = 10;
 
 const MAX_ROUNDS = 2;
 
-const tokens = {};
 const players = {};
 const drawHistory = [];
 const chatHistory = [];
@@ -331,39 +330,40 @@ const generateWordHint = (addHint = false) => {
 const wsHandlers = {
   [HandshakeMessage.type]: (socket, data) => {
     const { token } = data;
-    const newPlayerName = tokens[token] || 'TUTULO';
-    if (!newPlayerName) {
-      console.error(`Unknown player token ${token}!`);
-      return;
-    }
-    console.log(`Identified player ${newPlayerName}`);
-    socket.emit(HandshakeMessage.type, { name: newPlayerName });
-    drawHistory.forEach((data) => socket.emit(DrawMessage.type, data));
-    chatHistory.forEach((data) => socket.emit(ChatMessage.type, data));
-    players[newPlayerName] = { socket, score: 0, guessed: false };
+    UserModel.findOne({ token })
+      .then(({ login }) => {
+        const newPlayerName = login;
+        if (!newPlayerName) {
+          console.error(`Unknown player token ${token}!`);
+          return;
+        }
+        console.log(`Identified player ${newPlayerName}`);
+        socket.emit(HandshakeMessage.type, { name: newPlayerName });
+        drawHistory.forEach((data) => socket.emit(DrawMessage.type, data));
+        chatHistory.forEach((data) => socket.emit(ChatMessage.type, data));
+        players[newPlayerName] = { socket, score: 0, guessed: false };
 
-    const playerNames = Object.keys(players);
+        const playerNames = Object.keys(players);
 
-    if (gameState == STATE_PLAYING) {
-      roundScores[newPlayerName] = 0;
-      socket.emit(StartRoundMessage.type, new StartRoundMessage(drawingPlayerName, wordHint, roundsPlayed + 1).getPayload());
-    } else if (gameState == STATE_CHOOSING_WORD) {
-      socket.emit(ChatMessage.type, new ChatMessage(SERVER_NAME, `${drawingPlayerName} is choosing the word`).getPayload());
-    }
+        if (gameState == STATE_PLAYING) {
+          roundScores[newPlayerName] = 0;
+          socket.emit(StartRoundMessage.type, new StartRoundMessage(drawingPlayerName, wordHint, roundsPlayed + 1).getPayload());
+        } else if (gameState == STATE_CHOOSING_WORD) {
+          socket.emit(ChatMessage.type, new ChatMessage(SERVER_NAME, `${drawingPlayerName} is choosing the word`).getPayload());
+        }
 
-    playerNames.forEach(oldPlayerName => {
-      if (oldPlayerName == newPlayerName) {
-        return;
-      }
-      players[oldPlayerName].socket.emit(PlayerMessage.type, new PlayerMessage(newPlayerName, players[oldPlayerName]).getPayload());
-      players[newPlayerName].socket.emit(PlayerMessage.type, new PlayerMessage(oldPlayerName, players[newPlayerName]).getPayload());
-    });
+        playerNames.forEach(oldPlayerName => {
+          if (oldPlayerName == newPlayerName) {
+            return;
+          }
+          players[oldPlayerName].socket.emit(PlayerMessage.type, new PlayerMessage(newPlayerName, players[oldPlayerName]).getPayload());
+          players[newPlayerName].socket.emit(PlayerMessage.type, new PlayerMessage(oldPlayerName, players[newPlayerName]).getPayload());
+        });
 
-    if (gameState == STATE_IDLE && playerNames.length >= 2) {
-      startGame();
-    }
-
-    delete tokens[token];
+        if (gameState == STATE_IDLE && playerNames.length >= 2) {
+          startGame();
+        }
+      })
   },
   [DrawMessage.type]: (socket, data, playerName) => {
     if (gameState == STATE_PLAYING && playerName !== drawingPlayerName) {
@@ -477,7 +477,6 @@ app.use(express.json());
 
 app.post('/api/login', (req, res, next) => {
   const { login, password, newAccount } = req.body;
-  const token = uuid();
 
   UserModel.findOne({ login })
     .then(user => {
@@ -505,16 +504,32 @@ app.post('/api/login', (req, res, next) => {
           throw 'Incorrect password!';
         });
     })
-    .then(() => {
-      tokens[token] = login;
-      res.json({ token });
+    .then(user => {
+      const token = uuid();
+      user.token = token;
+      return user.save();
     })
+    .then(({ token, login }) => res.json({ token, login }))
+    .catch(err => next(err));
+});
+
+
+app.post('/api/autoLogin', (req, res, next) => {
+  const { token} = req.body;
+
+  UserModel.findOne({ token })
+    .then(user => {
+      const token = uuid();
+      user.token = token;
+      return user.save();
+    })
+    .then(({ token, login }) => res.json({ token, login }))
     .catch(err => next(err));
 });
 
 app.use(function(error, req, res, next) {
   console.error(error);
-  res.status(500).send({ message: error })
+  res.status(500).send({ message: error.toString() })
 });
 
 server.listen(PORT, () => console.log(`Game server is listening on ${PORT}`));

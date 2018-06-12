@@ -2,8 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormBuilder, FormGroup } from '@angular/forms'
 
-import { ApiService } from '../core/api.service';
-import { CommunicationService } from '../core/communication.service';
+import { AuthService } from '../core/auth.service';
+import { CookiesService } from '../core/cookies.service';
 
 @Component({
   selector: 'app-login',
@@ -15,8 +15,8 @@ export class LoginComponent implements OnInit {
   form: FormGroup;
   error: string;
 
-  constructor(private api: ApiService,
-              private communication: CommunicationService,
+  constructor(private auth: AuthService,
+              private cookies: CookiesService,
               private fb: FormBuilder,
               private router: Router) {
   }
@@ -38,10 +38,9 @@ export class LoginComponent implements OnInit {
 
 
   onSubmit() {
-    this.api.login(this.form.value)
+    this.auth.login(this.form.value)
       .subscribe(
-        ({ token }) => {
-          this.communication.token = token;
+        () => {
           this.router.navigate(['/menu'])
         },
         data => this.error = data.error.message
