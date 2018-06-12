@@ -105,6 +105,7 @@ export class GameComponent implements OnInit {
           this.word = data.word;
           break;
         case WordChoicesMessage.type:
+          this.sounds.playChooseWord();
           this.words = data.words;
           this.gameResults = null;
           this.roundResults = null;

@@ -22,6 +22,10 @@ export class SoundsService {
     this.playRandomSound(['to-je-retardacia']);
   }
 
+  playChooseWord() {
+    window.speechSynthesis.speak(new SpeechSynthesisUtterance('Choose a word!'));
+  }
+
   private playRandomSound(soundNames:string[]) {
     this.audio.src = `assets/sounds/${soundNames[Math.floor(Math.random()*soundNames.length)]}.wav`;
     this.audio.play();
