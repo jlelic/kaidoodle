@@ -15,7 +15,6 @@ interface Message {
 export class CommunicationService {
 
   socket;
-  serverUrl = window.location.origin;
 
   private _name: string;
   private _incomingMessages: Subject<any>;
@@ -37,7 +36,7 @@ export class CommunicationService {
       throw 'Token missing!';
     }
 
-    this.socket = io(this.serverUrl, { reconnection: false });
+    this.socket = io(window.location.origin, { reconnection: false });
 
     const onevent = this.socket.onevent;
     this.socket.onevent = function (packet) {
