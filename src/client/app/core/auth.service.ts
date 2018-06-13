@@ -15,9 +15,6 @@ export class AuthService {
 
   constructor(private api: ApiService, private cookies: CookiesService) {
     this.token = this.cookies.getCookie(this.COOKIE_TOKEN);
-    if (this.token) {
-      this.cookies.setCookie(this.COOKIE_TOKEN, this.token);
-    }
   }
 
   get loginName(): string {
