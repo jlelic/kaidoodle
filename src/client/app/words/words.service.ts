@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 
 import { ApiService } from '../core/api.service';
-import { AuthService } from '../core/auth.service';
+import { AuthService } from '../core/auth/auth.service';
 
 @Injectable()
 export class WordsService {

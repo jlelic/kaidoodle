@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 
-import { AuthService } from '../core/auth.service';
+import { AuthService } from '../core/auth/auth.service';
 
 @Component({
   selector: 'app-menu',
@@ -21,6 +21,6 @@ export class MenuComponent implements OnInit {
 
   onLogout() {
     this.auth.logout();
-    this.router.navigate(['']);
+    this.router.navigate(['/login']);
   }
 }

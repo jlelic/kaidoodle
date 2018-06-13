@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 
-import { AuthService } from './core/auth.service';
+import { AuthService } from './core/auth/auth.service';
 import { CookiesService } from './core/cookies.service';
 import { Router } from "@angular/router";
 
@@ -25,7 +25,7 @@ export class AppComponent implements OnInit{
       this.auth.autoLogin(token)
         .subscribe(
           () => {
-            this.router.navigate(['/menu'])
+            this.router.navigate(['/'])
           },
           data => console.error(data.error.message)
         )

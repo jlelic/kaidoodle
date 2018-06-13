@@ -2,8 +2,8 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/operator/do';
 
-import { ApiService } from './api.service';
-import { CookiesService } from './cookies.service';
+import { ApiService } from '../api.service';
+import { CookiesService } from '../cookies.service';
 
 @Injectable()
 export class AuthService {

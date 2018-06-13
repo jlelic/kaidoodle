@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormBuilder, FormGroup } from '@angular/forms'
 
-import { AuthService } from '../core/auth.service';
+import { AuthService } from '../core/auth/auth.service';
 import { CookiesService } from '../core/cookies.service';
 
 @Component({
@@ -41,7 +41,7 @@ export class LoginComponent implements OnInit {
     this.auth.login(this.form.value)
       .subscribe(
         () => {
-          this.router.navigate(['/menu'])
+          this.router.navigate(['/'])
         },
         data => this.error = data.error.message
       );

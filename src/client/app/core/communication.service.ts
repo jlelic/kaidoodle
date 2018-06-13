@@ -4,7 +4,7 @@ import { Subject } from 'rxjs/Subject';
 import * as io from 'socket.io-client';
 
 import * as HandshakeMessage from '../../../shared/messages/handshake-message';
-import { AuthService } from './auth.service';
+import { AuthService } from './auth/auth.service';
 
 interface Message {
   getType;
@@ -54,7 +54,7 @@ export class CommunicationService {
     this.socket.on('disconnect', () => {
       console.log('Websocket connection closed.');
       window.alert('Yo have been disconnected from the game!');
-      this.router.navigate(['/menu']);
+      this.router.navigate(['/']);
     });
 
     this.socket.on([HandshakeMessage.type], ({ name }) => {

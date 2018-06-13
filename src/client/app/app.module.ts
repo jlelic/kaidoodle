@@ -15,11 +15,12 @@ import { GameModule } from "./game/game.module";
 import { CoreModule } from './core/core.module';
 import { MenuComponent } from './menu/menu.component';
 import { WordsModule } from './words/words.module';
+import { LoggedInGuard } from './core/auth/logged-in.guard';
 
 const appRoutes: Routes = [
-  { path: '', component: LoginComponent },
-  { path: 'menu', component: MenuComponent },
-  { path: 'game', component: GameComponent },
+  { path: '', component: MenuComponent, canActivate: [LoggedInGuard] },
+  { path: 'login', component: LoginComponent },
+  { path: 'game', component: GameComponent, canActivate: [LoggedInGuard] },
   { path: '**', component: ErrorComponent }
 ];
 
@@ -43,8 +44,7 @@ const appRoutes: Routes = [
     ),
     WordsModule
   ],
-  providers: [
-  ],
+  providers: [],
   bootstrap: [AppComponent]
 })
 export class AppModule {
