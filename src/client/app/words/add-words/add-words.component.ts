@@ -26,6 +26,8 @@ export class AddWordsComponent implements OnInit {
       .filter(word => word.length > 0)
       .map(word => word.trim());
     this.loading = true;
+    this.error = null;
+    this.results = null;
     this.service.addWords(data)
       .subscribe(
         results => {

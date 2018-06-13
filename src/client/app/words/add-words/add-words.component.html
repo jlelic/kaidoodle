@@ -1,6 +1,6 @@
 <button [routerLink]="['/words']">Back</button><br/><br/><br/>
 <div>Type each word on a separate line and press "Send"</div>
-<button (click)="onSend()">Send</button>
+<button (click)="onSend()" [disabled]="loading">Send</button>
 <div>
 <textarea #input></textarea>
 </div>
