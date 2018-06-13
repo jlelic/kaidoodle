@@ -370,13 +370,11 @@ const wsHandlers = {
         drawHistory.forEach((data) => socket.emit(DrawMessage.type, data));
         chatHistory.forEach((data) => socket.emit(ChatMessage.type, data));
 
-        if (lastGameId !== gameId) {
+        if (gameState === STATE_PLAYING && lastGameId !== gameId) {
           score = 0;
           user.lastGameId = gameId;
           user.save().then(() => {
           });
-        } else {
-          console.log(`Reconnected with ${score}`);
         }
 
         players[newPlayerName] = { socket, score, guessed: false };
