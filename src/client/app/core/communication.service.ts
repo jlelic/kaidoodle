@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { Router } from '@angular/router';
 import { Subject } from 'rxjs/Subject';
 import * as io from 'socket.io-client';
 
@@ -19,7 +20,7 @@ export class CommunicationService {
   private _name: string;
   private _incomingMessages: Subject<any>;
 
-  constructor(private auth: AuthService) {
+  constructor(private auth: AuthService, private router: Router) {
     this._incomingMessages = new Subject();
   }
 
@@ -36,7 +37,7 @@ export class CommunicationService {
       throw 'Token missing!';
     }
 
-    this.socket = io(this.serverUrl);
+    this.socket = io(this.serverUrl, { reconnection: false });
 
     const onevent = this.socket.onevent;
     this.socket.onevent = function (packet) {
@@ -49,6 +50,12 @@ export class CommunicationService {
     this.socket.on('connect', () => {
       console.log('Websocket connection established.');
       this.send(new HandshakeMessage(this.auth.token))
+    });
+
+    this.socket.on('disconnect', () => {
+      console.log('Websocket connection closed.');
+      window.alert('Yo have been disconnected from the game!');
+      this.router.navigate(['/menu']);
     });
 
     this.socket.on([HandshakeMessage.type], ({ name }) => {
