@@ -613,7 +613,7 @@ app.post('/api/words', (req, res, next) => {
       });
     })
     .catch(err => {
-      if (err.code == 11000) {
+      if (!err.writeErrors && err.code == 11000) {
         err.writeErrors = [err];
       }
       if (!err.writeErrors) {
