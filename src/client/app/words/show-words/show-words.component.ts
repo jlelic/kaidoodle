@@ -14,7 +14,6 @@ export class ShowWordsComponent implements OnInit {
 
   ngOnInit() {
     this.route.data.forEach((data) => {
-      console.log(data);
       this.words = data.words;
     });
   }
