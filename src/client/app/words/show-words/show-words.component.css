@@ -21,8 +21,13 @@
   font-weight: bolder;
 }
 
-.deletedWord {
-  text-decoration: line-through;
-  color: gray;
+.wordTableCell:nth-child(2) > a:link, .wordTableCell:nth-child(2) > a:visited {
+  color: black;
+  text-decoration: none;
+}
+
+.deletedWord > a:link, .deletedWord > a:visited {
+  text-decoration: line-through !important;
+  color: gray !important;
   font-weight: 300 !important;
 }
