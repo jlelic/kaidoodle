@@ -11,13 +11,12 @@ export class CookiesService {
     return v ? v[2] : null;
   }
 
-  setCookie(name: string, value: string, days = 30) {
+  setCookie(name: string, value: string) {
     const date = new Date;
-    date.setTime(date.getTime() + 24 * 60 * 60 * 1000 * days);
-    document.cookie = `${name}=${value};path=/;expires=${date.toUTCString()}`;
+    document.cookie = `${name}=${value};path=/;`;
   }
 
   deleteCookie(name) {
-    this.setCookie(name, '', -1);
+    this.setCookie(name, '');
   }
 }

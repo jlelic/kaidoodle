@@ -161,7 +161,7 @@ const prepareRound = () => {
     return;
   }
 
-  WordModel.findRandom({}, {}, { limit: 3 }, function(err, randomWords) { // dooes't work with promises :(
+  WordModel.findRandom({ deleted: false }, {}, { limit: 3 }, function(err, randomWords) { // dooes't work with promises :(
     if (err) {
       endGame();
       sendChatMessageToAllPlayers('Error occured');
@@ -572,19 +572,46 @@ app.post('/api/autoLogin', (req, res, next) => {
       user.token = token;
       return user.save();
     })
-    .then(({ token, login }) => res.json({ token, login }))
+    .then(({ token, login }) => {
+      res.json({ token, login });
+    })
     .catch(err => next(err));
 });
 
+app.use((req, res, next) => {
+  const token = req.headers.authorization;
+  if (!token) {
+    throw 'You must be logged in';
+  }
+
+  UserModel.findOne({ token })
+    .then(user => {
+      if (!user) {
+        throw 'You must be logged in';
+      }
+      req.user = user;
+      next();
+    })
+});
+
 app.get('/api/words', (req, res, next) => {
-  WordModel.find({})
-    .then(words => res.json(words))
+  const page = req.query.p || 0;
+  const limit = req.query.pageSize || 50;
+
+  if (page <= 0) {
+    throw `Invalid page number ${page}`;
+  }
+
+  WordModel.paginate({}, { page, limit })
+    .then(result => {
+      res.json(result);
+    })
     .catch(err => next(err));
 });
 
 app.post('/api/words', (req, res, next) => {
   const allWords = req.body.words.map(word => word.toLowerCase());
-  const addedBy = req.body.author;
+  const addedBy = req.user.login;
   const force = req.body.force;
 
   const validWords = [];
@@ -635,6 +662,19 @@ app.post('/api/words', (req, res, next) => {
       res.json({ added, short, duplicate, error, invalid });
     })
     .catch(err => next(err));
+});
+
+app.delete('/api/word/:word', (req, res, next) => {
+  const { word } = req.params;
+  WordModel.findOne({ word })
+    .then(entry => {
+      entry.deleted = true;
+      entry.deletedBy = req.user.login;
+      return entry.save();
+    })
+    .then(result => res.json(result))
+    .catch(err => next(err));
+
 });
 
 app.use((error, req, res, next) => {

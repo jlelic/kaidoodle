@@ -20,15 +20,5 @@ export class AppComponent implements OnInit{
   }
 
   ngOnInit() {
-    const token = this.cookies.getCookie(this.auth.COOKIE_TOKEN);
-    if (token) {
-      this.auth.autoLogin(token)
-        .subscribe(
-          () => {
-            this.router.navigate(['/'])
-          },
-          data => console.error(data.error.message)
-        )
-    }
   }
 }

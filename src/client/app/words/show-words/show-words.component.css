@@ -1,0 +1,28 @@
+.wordTableRow {
+  border-bottom: solid 1px black;
+  display: table;
+  padding: 18px 0px 0px 0px;
+  min-height: 50px;
+}
+
+.wordTableCell {
+  display: inline-block;
+  min-width: 200px;
+}
+
+.wordTableCell:nth-child(1) {
+  min-width: 100px;
+}
+
+.wordTableCell:nth-child(2) {
+  min-width: 320px;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 1.5em;
+  font-weight: bolder;
+}
+
+.deletedWord {
+  text-decoration: line-through;
+  color: gray;
+  font-weight: 300 !important;
+}

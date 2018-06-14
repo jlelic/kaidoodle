@@ -1,16 +1,57 @@
-<button [routerLink]="['/']">Back</button>
-<button [routerLink]="['/words/add']">Add</button>
-<table>
-  <thead>
-  <tr>
-    <th>Word:</th>
-    <th>Added by:</th>
-  </tr>
-  </thead>
-  <tbody>
-  <tr *ngFor="let word of words">
-    <td>{{word.word}}</td>
-    <td>{{word.addedBy}}</td>
-  </tr>
-  </tbody>
-</table>
+<button [routerLink]="['/']" mat-button>Back</button>
+<button [routerLink]="['/words/add']" mat-button>Add</button>
+<div>
+  Page {{data.page}} / {{data.pages}}, {{data.total}} words
+  <span *ngIf="pageLinks < data.page - 1">
+    <button (click)="onPageChange(1)" mat-button>1</button>
+    ...
+  </span>
+  <span *ngFor="let pageNum of getPageLinks()">
+    <button *ngIf="data.page == pageNum" (click)="onPageChange(pageNum)" class="mat-button-toggle-checked"
+            mat-button><strong>{{pageNum}}</strong></button>
+    <button *ngIf="data.page != pageNum" (click)="onPageChange(pageNum)" mat-button>{{pageNum}}</button>
+  </span>
+  <span *ngIf="pageLinks < data.pages - data.page">
+    ...
+    <button (click)="onPageChange(data.pages)" mat-button>{{data.pages}}</button>
+  </span>
+</div>
+<div id="wordTable">
+  <div class="wordTableRow">
+    <span class="wordTableCell">No.</span>
+    <span class="wordTableCell">Word</span>
+    <span class="wordTableCell">Added by</span>
+    <span class="wordTableCell">Deleted by</span>
+  </div>
+  <div class="wordTableRow" *ngFor="let entry of data.docs; let i = index">
+    <span class="wordTableCell">
+      {{(data.page - 1) * data.limit + i + 1 }}.
+    </span>
+    <span class="wordTableCell" [ngClass]="{deletedWord: entry.deleted}">
+      {{entry.word}}
+    </span>
+    <span class="wordTableCell">
+      {{entry.addedBy}}
+    </span>
+    <span class="wordTableCell">
+      <button *ngIf="!entry.deleted" (click)="onDeleteClick(i)" mat-button>DELETE</button>
+      <span *ngIf="entry.deleted">{{entry.deletedBy}}</span>
+    </span>
+  </div>
+</div>
+<div>
+  Page {{data.page}} / {{data.pages}}, {{data.total}} words
+  <span *ngIf="pageLinks < data.page - 1">
+    <button (click)="onPageChange(1)" mat-button>1</button>
+    ...
+  </span>
+  <span *ngFor="let pageNum of getPageLinks()">
+    <button *ngIf="data.page == pageNum" (click)="onPageChange(pageNum)" class="mat-button-toggle-checked"
+            mat-button><strong>{{pageNum}}</strong></button>
+    <button *ngIf="data.page != pageNum" (click)="onPageChange(pageNum)" mat-button>{{pageNum}}</button>
+  </span>
+  <span *ngIf="pageLinks < data.pages - data.page">
+    ...
+    <button (click)="onPageChange(data.pages)" mat-button>{{data.pages}}</button>
+  </span>
+</div>

@@ -9,12 +9,12 @@ body {
   color: red;
 }
 
-.myButton {
+.mat-button {
   border: solid 3px rgba(80, 79, 82, 0.72) !important;
   border-radius: 5px !important;
 }
 
-.myButton.mat-button-toggle-checked {
+.mat-button.mat-button-toggle-checked {
   border: solid 3px black !important;
 }
 

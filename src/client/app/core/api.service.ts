@@ -4,18 +4,25 @@ import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/operator/do';
 
 
+
 @Injectable()
 export class ApiService {
+
+  defaultOptions = { headers: { 'Content-Type': 'application/json', 'authorization': '' } };
 
   constructor(private http: HttpClient) {
   }
 
-  get(url): Observable<any> {
-    return this.http.get(`api/${url}`, { headers: { 'Content-Type': 'application/json' } });
+  delete(url: string, params = {}): Observable<any> {
+    return this.http.delete(`api/${url}`, { ...this.defaultOptions, params });
   }
 
-  post(url, payload): Observable<any> {
+  get(url: string, params = {}): Observable<any> {
+    return this.http.get(`api/${url}`, { ...this.defaultOptions, params });
+  }
+
+  post(url: string, payload): Observable<any> {
     const body = JSON.stringify(payload);
-    return this.http.post(`api/${url}`, body, { headers: { 'Content-Type': 'application/json' } });
+    return this.http.post(`api/${url}`, body, this.defaultOptions);
   }
 }

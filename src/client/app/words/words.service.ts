@@ -14,7 +14,11 @@ export class WordsService {
     return this.api.post('words', { words, author: this.auth.loginName })
   }
 
-  getWords(): Observable<any> {
-    return this.api.get('words');
+  deleteWord(word): Observable<any> {
+    return this.api.delete(`word/${word}`);
+  }
+
+  getWords(page = 1): Observable<any> {
+    return this.api.get('words', { p: page });
   }
 }
