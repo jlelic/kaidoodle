@@ -11,8 +11,6 @@ const checkWord = (require('check-word')('en'));
 const UserModel = require('./models/user');
 const WordModel = require('./models/word');
 
-const WORDS = require('./words');
-
 const HandshakeMessage = require('../shared/messages/handshake-message');
 const DrawMessage = require('../shared/messages/draw-message');
 const GameOverMessage = require('../shared/messages/game-over-message');
