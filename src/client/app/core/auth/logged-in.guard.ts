@@ -11,7 +11,12 @@ export class LoggedInGuard implements CanActivate, CanActivateChild {
   }
 
   canActivate(): Observable<boolean> {
-    return this.auth.isLoggedIn;
+    return this.auth.isLoggedIn
+      .do(loggedIn => {
+        if(!loggedIn) {
+          this.router.navigate(['/login'])
+        }
+      })
   }
 
   canActivateChild(): Observable<boolean> {
