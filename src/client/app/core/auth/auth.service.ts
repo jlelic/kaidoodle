@@ -20,7 +20,7 @@ export class AuthService {
   constructor(private api: ApiService, private cookies: CookiesService) {
     this.token = this.cookies.getCookie(this.COOKIE_TOKEN);
     if (this.token) {
-      this.autoLogin().subscribe(() => {}, () => this.cookies.deleteCookie(this.COOKIE_TOKEN));
+      this.autoLogin().subscribe(() => {}, () => this.logout());
     } else {
       this._loggedIn.next(false);
     }
