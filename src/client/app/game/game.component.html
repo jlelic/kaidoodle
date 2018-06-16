@@ -38,34 +38,34 @@
             <strong>Choose a word:</strong>
           </span>
           <span id="wordChoicesContainer">
-            <button *ngFor="let wordChoice of words" mat-button class="myButton wordChoice" (click)="onWordChoice(wordChoice)">
+            <button *ngFor="let wordChoice of words" mat-button class="wordChoice" (click)="onWordChoice(wordChoice)">
               {{wordChoice}}
             </button>
           </span>
         </span>
       </span>
-      <span *ngIf="canDraw" id="toolsContainer">
-        <toolbar (toolSelected)="onToolSelected($event)"></toolbar>
-        <color-picker (colorSelected)="onColorSelected($event)"></color-picker>
-        Thickness:
-          <mat-slider
-            min="1"
-            max="61"
-            step="15"
-            tickInterval="1"
-            [(ngModel)]="thickness"
-          >
-          </mat-slider>
-        <span>
-          <button (click)="undo()" class="myButton" mat-button>
-                  <img class="toolIcon" [src]="'assets/icons/tools/undo.png'">
-          </button>
-          <button (click)="resetDrawing()" class="myButton" mat-button>
-                  <img class="toolIcon" [src]="'assets/icons/tools/clear.png'">
-          </button>
-        </span>
-      </span>
     </span>
     <chat></chat>
   </div>
+</div>
+<div *ngIf="canDraw" id="toolsContainer">
+  <toolbar [(tool)]="tool"></toolbar>
+  <color-picker (colorSelected)="onColorSelected($event)"></color-picker>
+  Thickness:
+  <mat-slider
+    min="1"
+    max="61"
+    step="15"
+    tickInterval="1"
+    [(ngModel)]="thickness"
+  >
+  </mat-slider>
+  <span>
+          <button (click)="undo()" mat-button>
+                  <img class="toolIcon" [src]="'assets/icons/tools/undo.png'">
+          </button>
+          <button (click)="resetDrawing()" mat-button>
+                  <img class="toolIcon" [src]="'assets/icons/tools/clear.png'">
+          </button>
+        </span>
 </div>

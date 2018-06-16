@@ -1,7 +1,6 @@
 #game {
   display: table;
   flex-flow: column;
-  margin: auto auto;
 }
 
 #gameCanvas {
@@ -56,4 +55,9 @@
 #word {
   font-family: "Courier New", Courier, monospace;
   font-size: 1.5em;
+}
+
+#toolsContainer {
+  margin: auto auto;
+  display: table;
 }

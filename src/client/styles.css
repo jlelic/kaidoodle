@@ -9,13 +9,21 @@ body {
   color: red;
 }
 
-.mat-button {
+.mat-button, .mat-button-toggle {
   border: solid 3px rgba(80, 79, 82, 0.72) !important;
   border-radius: 5px !important;
 }
 
-.mat-button.mat-button-toggle-checked {
-  border: solid 3px black !important;
+.mat-button-toggle {
+  border-bottom-color: dimgray !important;
+  border-right-color: dimgray !important;
+  border-radius: 5px !important;
+}
+
+.mat-button-toggle-checked {
+  border-color: rgba(80, 79, 82, 0.72) !important;
+  border-top-color: dimgray !important;
+  border-left-color: dimgray !important;
 }
 
 .toolButton {

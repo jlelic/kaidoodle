@@ -1,4 +1,4 @@
-import { Component, OnInit, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, Output, EventEmitter, Input } from '@angular/core';
 
 @Component({
   selector: 'toolbar',
@@ -7,19 +7,33 @@ import { Component, OnInit, Output, EventEmitter } from '@angular/core';
 })
 export class ToolbarComponent implements OnInit{
 
-  @Output() toolSelected = new EventEmitter<string>();
+  @Output() toolChange = new EventEmitter<string>();
   tools = [
     'brush',
     'kai'
   ];
 
+  private _tool: string;
+
+
   constructor() {}
 
+  @Input()
+  get tool() {
+    return this._tool;
+  }
+
+  set tool(value) {
+    this._tool = value;
+    this.toolChange.emit(value)
+  }
+
+
   ngOnInit() {
-    this.toolSelected.emit(this.tools[0]);
+    this.toolChange.emit(this.tools[0]);
   }
 
   onToolSelected(tool) {
-    this.toolSelected.emit(tool);
+    this.toolChange.emit(tool);
   }
 }

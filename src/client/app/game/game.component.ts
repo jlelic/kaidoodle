@@ -160,10 +160,7 @@ export class GameComponent implements OnInit {
 
   onColorSelected(color: string) {
     this.color = color;
-  }
-
-  onToolSelected(tool: string) {
-    this.tool = tool;
+    this.tool = 'brush';
   }
 
   onMouseDown(event: MouseEvent) {
