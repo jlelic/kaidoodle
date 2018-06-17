@@ -10,6 +10,7 @@ export class ToolbarComponent implements OnInit{
   @Output() toolChange = new EventEmitter<string>();
   tools = [
     'brush',
+    'bucket',
     'kai'
   ];
 

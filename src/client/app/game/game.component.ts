@@ -1,4 +1,5 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import * as colorString from 'color-string';
 
 import { CommunicationService } from '../core/communication.service';
 import * as DrawMessage from '../../../shared/messages/draw-message';
@@ -119,6 +120,85 @@ export class GameComponent implements OnInit {
     });
   }
 
+  bucketTool(startX: number, startY: number, color) {
+    const colorEq = (data, color, b) => {
+      return color[0] === data.data[b]
+        && color[1] === data.data[b + 1]
+        && color[2] === data.data[b + 2]
+        && color[3] === data.data[b + 3]
+    };
+
+    const getIndex = (x, y, width) => y * (width * 4) + x * 4;
+
+    const [r, g, b, _] = colorString.get.rgb(color);
+    const a = 255;
+    const ctx = this.context;
+    const fillData = ctx.createImageData(1, 1);
+    fillData.data[0] = r;
+    fillData.data[1] = g;
+    fillData.data[2] = b;
+    fillData.data[3] = a;
+    const w = this.canvas.nativeElement.width;
+    const h = this.canvas.nativeElement.height;
+    const startIndex = getIndex(startX, startY, w);
+    const data = ctx.getImageData(0, 0, w, h);
+    const newData = ctx.getImageData(0, 0, w, h);
+    const bg = [
+      data.data[startIndex + 0],
+      data.data[startIndex + 1],
+      data.data[startIndex + 2],
+      data.data[startIndex + 3]
+    ];
+
+    if (bg[0] == r && bg[1] == g && bg[2] == b) {
+      return
+    }
+
+    const stack = [{ x: startX, y: startY }];
+
+    while (stack.length) {
+      let { x, y } = stack.pop();
+
+      if (!colorEq(data, bg, getIndex(x, y, w))) {
+        continue;
+      }
+
+      while (x > 0 && colorEq(data, bg, getIndex(x - 1, y, w))) {
+        x -= 1
+      }
+
+      let up = true, down = true;
+      while (x < w && colorEq(data, bg, getIndex(x, y, w))) {
+        const i = getIndex(x, y, w);
+        data.data[i] = r;
+        data.data[i + 1] = g;
+        data.data[i + 2] = b;
+        data.data[i + 3] = a;
+        newData.data[i] = r;
+        newData.data[i + 1] = g;
+        newData.data[i + 2] = b;
+        newData.data[i + 3] = a;
+
+        if (y + 1 < h) {
+          if (up && colorEq(data, bg, getIndex(x, y + 1, w))) {
+            stack.push({ x, y: y + 1 });
+          }
+          up = !colorEq(data, bg, getIndex(x, y + 1, w));
+        }
+
+        if (y > 0) {
+          if (down && colorEq(data, bg, getIndex(x, y - 1, w))) {
+            stack.push({ x, y: y - 1 });
+          }
+          down = !colorEq(data, bg, getIndex(x, y - 1, w));
+        }
+
+        x += 1;
+      }
+    }
+    ctx.putImageData(newData, 0, 0);
+  }
+
   clearCanvas() {
     this.context.fillStyle = 'white';
     this.context.fillRect(0, 0, this.width, this.height);
@@ -134,8 +214,8 @@ export class GameComponent implements OnInit {
 
   calculateCanvasPosition(event: MouseEvent) {
     const rect = this.canvas.nativeElement.getBoundingClientRect();
-    let x = event.clientX - rect.left;
-    let y = event.clientY - rect.top;
+    let x = Math.round(event.clientX - rect.left);
+    let y = Math.round(event.clientY - rect.top);
     if (x < 0 || y < 0 || x > this.width || y > this.height) {
       if (this.isOverCanvas) {
         if (x < 0) {
@@ -160,7 +240,9 @@ export class GameComponent implements OnInit {
 
   onColorSelected(color: string) {
     this.color = color;
-    this.tool = 'brush';
+    if (this.tool == 'kai') {
+      this.tool = 'brush';
+    }
   }
 
   onThicknessSelected(thickness: number) {
@@ -271,6 +353,9 @@ export class GameComponent implements OnInit {
           this.context.ellipse(x - thickness, y, thickness, thickness, 0, 0, 0);
         }
         this.context.stroke();
+        break;
+      case 'bucket':
+        this.bucketTool(x, y, data.color);
         break;
       case 'kai':
         this.context.drawImage(this.kaiImage, x - 128, y - 400);
