@@ -35,7 +35,7 @@ export class GameComponent implements OnInit {
 
   thickness = 1;
   color: string;
-  tool: string;
+  tool: string = 'brush';
   kaiImage;
   isPlaying = false;
   roundResults = null;
@@ -161,6 +161,10 @@ export class GameComponent implements OnInit {
   onColorSelected(color: string) {
     this.color = color;
     this.tool = 'brush';
+  }
+
+  onThicknessSelected(thickness: number) {
+    this.thickness = thickness;
   }
 
   onMouseDown(event: MouseEvent) {

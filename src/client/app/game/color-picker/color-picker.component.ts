@@ -40,7 +40,6 @@ export class ColorPickerComponent implements OnInit{
   constructor() {}
 
   ngOnInit() {
-    this.colorSelected.emit(this.colors[0][0]);
   }
 
   onColorSelected(i:number, j:number) {

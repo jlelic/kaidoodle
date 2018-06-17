@@ -36,3 +36,8 @@ body {
   width: 32px;
   height: 32px;
 }
+
+
+.mat-button-toggle-label-content {
+  padding: 0px 4px !important;
+}

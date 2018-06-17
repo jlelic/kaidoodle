@@ -51,15 +51,7 @@
 <div *ngIf="canDraw" id="toolsContainer">
   <toolbar [(tool)]="tool"></toolbar>
   <color-picker (colorSelected)="onColorSelected($event)"></color-picker>
-  Thickness:
-  <mat-slider
-    min="1"
-    max="61"
-    step="15"
-    tickInterval="1"
-    [(ngModel)]="thickness"
-  >
-  </mat-slider>
+  <thickness-picker (thicknessSelected)="onThicknessSelected($event)"></thickness-picker>
   <span>
           <button (click)="undo()" mat-button>
                   <img class="toolIcon" [src]="'assets/icons/tools/undo.png'">

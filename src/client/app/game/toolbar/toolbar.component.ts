@@ -13,7 +13,7 @@ export class ToolbarComponent implements OnInit{
     'kai'
   ];
 
-  private _tool: string;
+  private _tool: string = 'brush';
 
 
   constructor() {}
@@ -30,7 +30,6 @@ export class ToolbarComponent implements OnInit{
 
 
   ngOnInit() {
-    this.toolChange.emit(this.tools[0]);
   }
 
   onToolSelected(tool) {
