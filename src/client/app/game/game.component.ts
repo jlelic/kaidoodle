@@ -361,6 +361,7 @@ export class GameComponent implements OnInit {
         this.context.drawImage(this.kaiImage, x - 128, y - 400);
         break;
       case 'clear':
+        this.drawHistory = [];
         this.clearCanvas();
         break;
       case 'undo':

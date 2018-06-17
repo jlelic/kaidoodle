@@ -406,7 +406,11 @@ const wsHandlers = {
       return;
     }
     socket.broadcast.emit(DrawMessage.type, data);
-    drawHistory.push(data)
+    if (data.tool == 'clear') {
+      drawHistory.splice(0, drawHistory.length);
+    } else {
+      drawHistory.push(data)
+    }
   },
   [ChatMessage.type]: (socket, data, playerName) => {
     if (playerName !== data.sender) {
