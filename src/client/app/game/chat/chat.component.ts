@@ -1,5 +1,6 @@
 import { AfterViewChecked, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms'
+import { Subscription } from 'rxjs/Subscription';
 
 import { CommunicationService } from '../../core/communication.service';
 import { SoundsService } from '../../core/sounds.service';
@@ -17,11 +18,12 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   @ViewChild('chatInput') private chatInput: ElementRef;
 
   form: FormGroup;
+  messageSubscription: Subscription;
   messages = [];
   keepScrollingToBottom = true;
 
   constructor(private communication: CommunicationService, private fb: FormBuilder, private sounds: SoundsService) {
-    this.communication.incomingMessages.subscribe(({ type, data }) => {
+    this.messageSubscription = this.communication.incomingMessages.subscribe(({ type, data }) => {
       if (type === ChatMessage.type) {
         this.processChatMessage(data);
       }
@@ -43,7 +45,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   }
 
   ngOnDestroy() {
-    this.communication.incomingMessages.unsubscribe();
+    this.messageSubscription.unsubscribe();
   }
 
   buildForm() {

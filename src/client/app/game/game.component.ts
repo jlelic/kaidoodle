@@ -1,7 +1,7 @@
 import { Component, OnInit, ViewChild, ElementRef, OnDestroy } from '@angular/core';
+import { Subscription } from 'rxjs/Subscription';
 import * as colorString from 'color-string';
 
-import { CommunicationService } from '../core/communication.service';
 import * as DrawMessage from '../../../shared/messages/draw-message';
 import * as StartRoundMessage from '../../../shared/messages/start-round-message';
 import * as EndRoundMessage from '../../../shared/messages/end-round-message';
@@ -10,6 +10,7 @@ import * as TimerMessage from '../../../shared/messages/timer-message';
 import * as WordMessage from '../../../shared/messages/word-message';
 import * as WordChoicesMessage from '../../../shared/messages/word-choices-message';
 
+import { CommunicationService } from '../core/communication.service';
 import { PlayersService } from '../core/players.service';
 import { SoundsService } from '../core/sounds.service';
 
@@ -21,6 +22,7 @@ import { SoundsService } from '../core/sounds.service';
 export class GameComponent implements OnInit, OnDestroy {
   @ViewChild('canvas') canvas: ElementRef;
 
+  messageSubscription: Subscription;
   context: CanvasRenderingContext2D;
   width = 800;
   height = 600;
@@ -74,7 +76,7 @@ export class GameComponent implements OnInit, OnDestroy {
     this.context.imageSmoothingEnabled = false;
     this.clearCanvas();
     this.drawHistory = [];
-    const x = this.communication.incomingMessages.subscribe(({ type, data }) => {
+    this.messageSubscription = this.communication.incomingMessages.subscribe(({ type, data }) => {
       switch (type) {
         case DrawMessage.type:
           this.processDrawMessage(data);
@@ -122,7 +124,7 @@ export class GameComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.communication.disconnect();
-    this.communication.incomingMessages.unsubscribe();
+    this.messageSubscription.unsubscribe();
   }
 
   bucketTool(startX: number, startY: number, color) {
