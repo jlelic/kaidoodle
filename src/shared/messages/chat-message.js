@@ -1,10 +1,10 @@
 class Message {
 
-  constructor(sender, text) {
-    this.payload = {sender, text};
+  constructor(sender, text, color = 'black') {
+    this.payload = { sender, text, color };
   }
 
-  static get type(){
+  static get type() {
     return 'chat';
   }
 

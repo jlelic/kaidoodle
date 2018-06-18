@@ -38,7 +38,7 @@ const STATE_PLAYING = 'PLAYING';
 const STATE_COOLDOWN = 'COOLDOWN';
 const STATE_CHOOSING_WORD = 'CHOOSING_WORD';
 
-const SERVER_NAME = 'Server';
+const SERVER_NAME = '/server';
 
 const TIME_ROUND_BASE = 80;
 const TIME_ROUND_REDUCTION = 5;
@@ -319,8 +319,8 @@ const startTimer = (updateCallback, doneCallback) => {
   return intervalId;
 };
 
-const sendChatMessageToAllPlayers = (text) => {
-  sendToAllPlayers(new ChatMessage(SERVER_NAME, text));
+const sendChatMessageToAllPlayers = (text, color = 'gray') => {
+  sendToAllPlayers(new ChatMessage(SERVER_NAME, text, color));
 };
 
 const sendToAllPlayers = (message) => {
@@ -387,7 +387,7 @@ const wsHandlers = {
           roundScores[newPlayerName] = 0;
           socket.emit(StartRoundMessage.type, new StartRoundMessage(drawingPlayerName, wordHint, roundsPlayed + 1).getPayload());
         } else if (gameState == STATE_CHOOSING_WORD) {
-          socket.emit(ChatMessage.type, new ChatMessage(SERVER_NAME, `${drawingPlayerName} is choosing a word`).getPayload());
+          socket.emit(ChatMessage.type, new ChatMessage(SERVER_NAME, `${drawingPlayerName} is choosing a word`, 'gray').getPayload());
         }
 
         playerNames.forEach(oldPlayerName => {
@@ -428,8 +428,8 @@ const wsHandlers = {
       roundScores[playerName] = score;
       players[playerName].score += score;
       players[playerName].guessed = true;
-      socket.emit(ChatMessage.type, new ChatMessage(SERVER_NAME, `You guessed the word! +${score} points`).getPayload());
-      socket.broadcast.emit(ChatMessage.type, new ChatMessage(SERVER_NAME, `${data.sender} guessed the word! +${score} points`).getPayload());
+      socket.emit(ChatMessage.type, new ChatMessage(SERVER_NAME, `You guessed the word! +${score} points`, '#00cc00').getPayload());
+      socket.broadcast.emit(ChatMessage.type, new ChatMessage(SERVER_NAME, `${data.sender} guessed the word! +${score} points`, '#007700').getPayload());
       sendToAllPlayers(new PlayerMessage(playerName, players[playerName]));
       if (remainingTime > 10)
         guessingTime = guessingTime - Math.min(TIME_ROUND_REDUCTION, Math.max(0, remainingTime - TIME_ROUND_MINIMUM));
@@ -443,7 +443,7 @@ const wsHandlers = {
 
       return;
     } else if (data.text && word && leven(data.text, word) == 1) {
-      socket.emit(ChatMessage.type, new ChatMessage(SERVER_NAME, `${data.text} is close!`).getPayload());
+      socket.emit(ChatMessage.type, new ChatMessage(SERVER_NAME, `${data.text} is close!`, '#0000ff').getPayload());
       return;
     }
     socket.broadcast.emit(ChatMessage.type, data);

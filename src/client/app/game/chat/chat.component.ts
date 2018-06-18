@@ -56,10 +56,10 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     const el = this.chatHistoryElement.nativeElement;
     this.keepScrollingToBottom = data.sender == this.communication.name || el.scrollHeight - el.offsetHeight - el.scrollTop < 5;
 
-    if (data.sender === 'Server' && data.text.startsWith('You guessed the word')) {
+    data.system = data.sender.startsWith('/');
+    if (data.system && data.text.startsWith('You guessed the word')) {
       this.sounds.playOk();
     }
-
     this.messages.push(data)
   }
 

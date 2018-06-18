@@ -1,8 +1,8 @@
 <div id="chatWindow">
   <div id="chatHeader">Chat:</div>
   <div id="chatHistory" #chatHistory>
-  <span class="chatMessage" *ngFor="let message of messages">
-    <strong>{{message.sender}}:</strong> {{message.text}}
+  <span class="chatMessage" *ngFor="let message of messages" [ngStyle]="{'color': message.color}">
+    <strong *ngIf="!message.system">{{message.sender}}:</strong> {{message.text}}
   </span>
   </div>
   <form [formGroup]="form" (submit)="onSubmit($event)">
