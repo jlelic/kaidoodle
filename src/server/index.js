@@ -442,9 +442,13 @@ const wsHandlers = {
 
 
       return;
-    } else if (data.text && word && leven(data.text, word) == 1) {
-      socket.emit(ChatMessage.type, new ChatMessage(SERVER_NAME, `${data.text} is close!`, '#0000ff').getPayload());
-      return;
+    } else if (data.text && word) {
+      const lDistance = leven(data.text, word)
+      if(lDistance == 1) {
+        socket.emit(ChatMessage.type, new ChatMessage(SERVER_NAME, `${data.text} is really close!`, '#3153ff').getPayload());
+      } else if (lDistance == 2 && remainingTime <= TIME_ROUND_MINIMUM) {
+        socket.emit(ChatMessage.type, new ChatMessage(SERVER_NAME, `${data.text} is kinda close!`, '#5078cc').getPayload());
+      }
     }
     socket.broadcast.emit(ChatMessage.type, data);
     while (chatHistory.length >= 20) {
