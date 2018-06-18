@@ -1,9 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { FormBuilder, FormGroup } from '@angular/forms'
+import { FormBuilder, FormGroup, Validators } from '@angular/forms'
 
 import { AuthService } from '../core/auth/auth.service';
-import { CookiesService } from '../core/cookies.service';
 
 @Component({
   selector: 'app-login',
@@ -16,7 +15,6 @@ export class LoginComponent implements OnInit {
   error: string;
 
   constructor(private auth: AuthService,
-              private cookies: CookiesService,
               private fb: FormBuilder,
               private router: Router) {
   }
@@ -29,7 +27,7 @@ export class LoginComponent implements OnInit {
     this.error = '';
     this.form = this.fb.group(
       {
-        login: '',
+        login: ['', Validators.pattern(/^[a-zA-Z0-9]+$/)],
         password: '',
         newAccount: false
       }
