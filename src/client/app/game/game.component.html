@@ -38,9 +38,12 @@
             <strong>Choose a word:</strong>
           </span>
           <span id="wordChoicesContainer">
-            <button *ngFor="let wordChoice of words" mat-button class="wordChoice" (click)="onWordChoice(wordChoice)">
-              {{wordChoice}}
-            </button>
+            <div class="wordChoice" *ngFor="let wordChoice of words">
+              <button mat-button (click)="onWordChoice(wordChoice)">
+                {{wordChoice}}
+              </button>
+              <a [href]="'https://www.google.cz/search?q='+wordChoice" target="_blank">Google it</a>
+            </div>
           </span>
         </span>
       </span>
@@ -53,11 +56,11 @@
   <color-picker (colorSelected)="onColorSelected($event)"></color-picker>
   <thickness-picker (thicknessSelected)="onThicknessSelected($event)"></thickness-picker>
   <div class="toolGroup">
-          <button (click)="undo()" mat-button>
-                  <img class="toolIcon" [src]="'assets/icons/tools/undo.png'">
-          </button>
-          <button (click)="resetDrawing()" mat-button>
-                  <img class="toolIcon" [src]="'assets/icons/tools/clear.png'">
-          </button>
-        </div>
+    <button (click)="undo()" mat-button>
+      <img class="toolIcon" [src]="'assets/icons/tools/undo.png'">
+    </button>
+    <button (click)="resetDrawing()" mat-button>
+      <img class="toolIcon" [src]="'assets/icons/tools/clear.png'">
+    </button>
+  </div>
 </div>

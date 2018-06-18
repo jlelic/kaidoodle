@@ -115,6 +115,7 @@ export class GameComponent implements OnInit, OnDestroy {
           break;
         case GameOverMessage.type:
           this.gameResults = this.players.players;
+          this.words = null;
           this.roundResults = null;
           this.round = 0;
           break;
