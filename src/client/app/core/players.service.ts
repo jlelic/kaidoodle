@@ -44,6 +44,9 @@ export class PlayersService {
           this._drawing = data.drawing;
           this._players.forEach(player => player.guessed = false);
           break;
+        case 'disconnect':
+          this._players = [];
+          break;
       }
     })
   }

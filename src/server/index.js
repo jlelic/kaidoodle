@@ -159,7 +159,7 @@ const prepareRound = () => {
     return;
   }
 
-  WordModel.findRandom({ deleted: false }, {}, { limit: 3 }, function(err, randomWords) { // dooes't work with promises :(
+  WordModel.findRandom({ $or: [{ deleted: false }, { deleted: null }] }, {}, { limit: 3 }, function(err, randomWords) { // dooes't work with promises :(
     if (err) {
       endGame();
       sendChatMessageToAllPlayers('Error occured');
@@ -373,6 +373,10 @@ const wsHandlers = {
           user.lastGameId = gameId;
           user.save().then(() => {
           });
+        }
+
+        if (players[newPlayerName]) {
+          players[newPlayerName].socket.disconnect();
         }
 
         players[newPlayerName] = { socket, score, guessed: false };

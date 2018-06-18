@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, OnDestroy } from '@angular/core';
 import * as colorString from 'color-string';
 
 import { CommunicationService } from '../core/communication.service';
@@ -18,7 +18,7 @@ import { SoundsService } from '../core/sounds.service';
   templateUrl: './game.component.html',
   styleUrls: ['./game.component.css']
 })
-export class GameComponent implements OnInit {
+export class GameComponent implements OnInit, OnDestroy {
   @ViewChild('canvas') canvas: ElementRef;
 
   context: CanvasRenderingContext2D;
@@ -118,6 +118,10 @@ export class GameComponent implements OnInit {
           break;
       }
     });
+  }
+
+  ngOnDestroy() {
+    this.communication.disconnect();
   }
 
   bucketTool(startX: number, startY: number, color) {

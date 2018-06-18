@@ -54,6 +54,7 @@ export class CommunicationService {
     this.socket.on('disconnect', () => {
       console.log('Websocket connection closed.');
       window.alert('Yo have been disconnected from the game!');
+      this._incomingMessages.next({ type: 'disconnect' });
       this.router.navigate(['/']);
     });
 
@@ -64,6 +65,10 @@ export class CommunicationService {
     this.socket.on("*", (type, data) => {
       this._incomingMessages.next({ type, data });
     });
+  }
+
+  disconnect() {
+    this.socket.disconnect();
   }
 
   send(message: Message) {
