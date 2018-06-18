@@ -35,7 +35,7 @@ export class GameComponent implements OnInit {
   round = 0;
 
   thickness = 1;
-  color: string;
+  color: string = 'black';
   tool: string = 'brush';
   kaiImage;
   isPlaying = false;
@@ -356,6 +356,9 @@ export class GameComponent implements OnInit {
         break;
       case 'bucket':
         this.bucketTool(x, y, data.color);
+        break;
+      case 'eraser':
+        this.processDrawMessage({ ...data, color: 'white', tool: 'brush' }, false);
         break;
       case 'kai':
         this.context.drawImage(this.kaiImage, x - 128, y - 400);

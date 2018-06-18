@@ -44,5 +44,6 @@ body {
 .toolGroup {
   display: inline;
   vertical-align: top;
+  padding: 4px;
 }
 
