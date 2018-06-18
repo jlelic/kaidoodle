@@ -1,4 +1,4 @@
-import { AfterViewChecked, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { AfterViewChecked, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms'
 
 import { CommunicationService } from '../../core/communication.service';
@@ -12,7 +12,7 @@ import * as ChatMessage from '../../../../shared/messages/chat-message';
   templateUrl: './chat.component.html',
   styleUrls: ['./chat.component.css']
 })
-export class ChatComponent implements OnInit, AfterViewChecked {
+export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   @ViewChild('chatHistory') private chatHistoryElement: ElementRef;
   @ViewChild('chatInput') private chatInput: ElementRef;
 
@@ -40,6 +40,10 @@ export class ChatComponent implements OnInit, AfterViewChecked {
     if (this.keepScrollingToBottom) {
       this.scrollToBottom();
     }
+  }
+
+  ngOnDestroy() {
+    this.communication.incomingMessages.unsubscribe();
   }
 
   buildForm() {

@@ -122,6 +122,7 @@ export class GameComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.communication.disconnect();
+    this.communication.incomingMessages.unsubscribe();
   }
 
   bucketTool(startX: number, startY: number, color) {
