@@ -10,9 +10,9 @@
   display: inline-flex;
   min-width: 240px;
   width: 240px;
-  height: 600px;
+  height: 599px;
   border: solid 3px black;
-  border-left: none;
+  border-left-width: 1px;
   border-top-right-radius: 10px;
   border-bottom-right-radius: 10px;
 }
