@@ -11,3 +11,8 @@
 #colorTable {
   display: inline;
 }
+
+#colorIndicator {
+  display: inline-block;
+  height: 60px;
+}

@@ -35,7 +35,7 @@ export class ColorPickerComponent implements OnInit{
     ]
   ];
 
-  help = '#880015';
+  private color = this.colors[0][0];
 
   constructor() {}
 
@@ -43,6 +43,8 @@ export class ColorPickerComponent implements OnInit{
   }
 
   onColorSelected(i:number, j:number) {
-    this.colorSelected.emit(this.colors[i][j]);
+    const newColor = this.colors[i][j];
+    this.colorSelected.emit(newColor);
+    this.color = newColor;
   }
 }

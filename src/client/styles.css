@@ -37,7 +37,12 @@ body {
   height: 32px;
 }
 
-
 .mat-button-toggle-label-content {
   padding: 0px 4px !important;
 }
+
+.toolGroup {
+  display: inline;
+  vertical-align: top;
+}
+

@@ -52,12 +52,12 @@
   <toolbar [(tool)]="tool"></toolbar>
   <color-picker (colorSelected)="onColorSelected($event)"></color-picker>
   <thickness-picker (thicknessSelected)="onThicknessSelected($event)"></thickness-picker>
-  <span>
+  <div class="toolGroup">
           <button (click)="undo()" mat-button>
                   <img class="toolIcon" [src]="'assets/icons/tools/undo.png'">
           </button>
           <button (click)="resetDrawing()" mat-button>
                   <img class="toolIcon" [src]="'assets/icons/tools/clear.png'">
           </button>
-        </span>
+        </div>
 </div>

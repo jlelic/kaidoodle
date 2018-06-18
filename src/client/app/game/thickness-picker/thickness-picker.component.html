@@ -1,9 +1,9 @@
-<span #thicknessContainer>
-<mat-button-toggle-group value="1">
+<div #thicknessContainer class="toolGroup">
+  <mat-button-toggle-group value="1">
   <span *ngFor="let thickness of values">
     <mat-button-toggle class="buttonThickness" [value]="thickness" (change)="onThicknessSelected(thickness)">
       <canvas width="32" height="32"></canvas>
     </mat-button-toggle>
   </span>
-</mat-button-toggle-group>
-</span>
+  </mat-button-toggle-group>
+</div>

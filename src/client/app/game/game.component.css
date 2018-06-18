@@ -59,5 +59,8 @@
 
 #toolsContainer {
   margin: auto auto;
-  display: table;
+  display: flex;
+  flex-flow: row;
+  align-items: center;
+  justify-content: center;
 }
