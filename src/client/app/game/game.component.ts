@@ -221,28 +221,33 @@ export class GameComponent implements OnInit, OnDestroy {
 
   calculateCanvasPosition(event: MouseEvent) {
     const rect = this.canvas.nativeElement.getBoundingClientRect();
-    let x = Math.round(event.clientX - rect.left);
+    const prevX = this.prevX;
+    const prevY = this.prevY;
+    let x = Math.round(event.clientX - rect.left) - 2;
     let y = Math.round(event.clientY - rect.top);
-    if (x < 0 || y < 0 || x > this.width || y > this.height) {
+    this.prevX = x;
+    this.prevY = y;
+    const thickness = this.thickness;
+    if (x < -thickness || y < -thickness || x > this.width + thickness || y > this.height + thickness) {
       if (this.isOverCanvas) {
-        if (x < 0) {
-          x = 0;
-        } else if (x > this.width) {
-          x = this.width
+        if (x < -thickness) {
+          x = -thickness;
+        } else if (x > this.width + thickness) {
+          x = this.width + thickness;
         }
-        if (y < 0) {
-          y = 0;
-        } else if (y > this.height) {
-          y = this.height;
+        if (y < -thickness) {
+          y = -thickness;
+        } else if (y > this.height + thickness) {
+          y = this.height + thickness;
         }
         this.isOverCanvas = false;
-        return { x, y };
+        return { x, y, prevX, prevY };
       }
       this.isOverCanvas = false;
       return null;
     }
     this.isOverCanvas = true;
-    return { x, y };
+    return { x, y, prevX, prevY };
   }
 
   onColorSelected(color: string) {
@@ -278,8 +283,6 @@ export class GameComponent implements OnInit, OnDestroy {
       y
     );
     this.processDrawMessage(message.getPayload());
-    this.prevX = x;
-    this.prevY = y;
     this.communication.send(message);
   }
 
@@ -297,11 +300,9 @@ export class GameComponent implements OnInit, OnDestroy {
     }
     const position = this.calculateCanvasPosition(event);
     if (!position) {
-      this.prevX = null;
-      this.prevY = null;
       return;
     }
-    const { x, y } = position;
+    const { x, y, prevX, prevY } = position;
     if (event.buttons) {
       if (!this.canDraw) {
         return;
@@ -312,12 +313,10 @@ export class GameComponent implements OnInit, OnDestroy {
         this.thickness,
         x,
         y,
-        this.prevX,
-        this.prevY
+        prevX,
+        prevY
       );
       this.processDrawMessage(message.getPayload());
-      this.prevX = x;
-      this.prevY = y;
       this.communication.send(message);
     }
   }
