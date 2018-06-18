@@ -6,6 +6,7 @@ const app = express();
 const server = require('http').createServer(app);
 const io = require('socket.io')(server);
 const leven = require('leven');
+const colorString = require('color-string');
 const checkWord = (require('check-word')('en'));
 
 const UserModel = require('./models/user');
@@ -251,7 +252,8 @@ const endRound = () => {
     }
   });
 
-  const drawingPlayerScore = playersGuessed > 0 ? Math.round(winnerScore * playersGuessed / playersGuessing) : SCORE_NO_CORRECT_GUESSES;
+  const ratioGuessed = playersGuessed / playersGuessing;
+  const drawingPlayerScore = playersGuessed > 0 ? Math.round(winnerScore * ratioGuessed) : SCORE_NO_CORRECT_GUESSES;
   roundScores[drawingPlayerName] = drawingPlayerScore;
   if (players[drawingPlayerName]) {
     players[drawingPlayerName].score += drawingPlayerScore;
@@ -260,6 +262,10 @@ const endRound = () => {
   }
 
   drawingPlayerName = null;
+  sendChatMessageToAllPlayers(
+    `The word was ${word}. ${playersGuessed}/${playersGuessing} guessed`,
+    colorString.to.hex([200 - 100 * ratioGuessed, 100 + 100 * ratioGuessed, 0])
+  );
   sendToAllPlayers(new EndRoundMessage(word, roundScores));
   clearInterval(timerUpdateInterval);
   timerUpdateInterval = startTimer(
@@ -443,8 +449,8 @@ const wsHandlers = {
 
       return;
     } else if (data.text && word) {
-      const lDistance = leven(data.text, word)
-      if(lDistance == 1) {
+      const lDistance = leven(data.text, word);
+      if (lDistance == 1) {
         socket.emit(ChatMessage.type, new ChatMessage(SERVER_NAME, `${data.text} is really close!`, '#3153ff').getPayload());
       } else if (lDistance == 2 && remainingTime <= TIME_ROUND_MINIMUM) {
         socket.emit(ChatMessage.type, new ChatMessage(SERVER_NAME, `${data.text} is kinda close!`, '#5078cc').getPayload());
