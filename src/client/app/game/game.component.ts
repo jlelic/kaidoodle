@@ -14,6 +14,7 @@ import { CommunicationService } from '../core/communication.service';
 import { PlayersService } from '../core/players.service';
 import { SoundsService } from '../core/sounds.service';
 import { DiscordService } from '../core/discord/discord.service';
+import { ChatService } from '../core/chat/chat.service';
 
 @Component({
   selector: 'app-game',
@@ -48,12 +49,11 @@ export class GameComponent implements OnInit, OnDestroy {
   lastShared;
 
 
-  constructor(
-    private communication: CommunicationService,
-    private discord: DiscordService,
-    private players: PlayersService,
-    private sounds: SoundsService
-  ) {
+  constructor(private chat: ChatService,
+              private communication: CommunicationService,
+              private discord: DiscordService,
+              private players: PlayersService,
+              private sounds: SoundsService) {
   }
 
   get name() {
@@ -346,12 +346,19 @@ export class GameComponent implements OnInit, OnDestroy {
 
   shareImage() {
     const now: any = new Date();
-    if(this.lastShared && now - this.lastShared < 30*1000) {
-      window.alert(`Wait ${30 - Math.round((now - this.lastShared)/1000)} seconds before sharing again!`);
+    if (this.lastShared && now - this.lastShared < 30 * 1000) {
+      this.chat.addSystemError(`Wait ${30 - Math.round((now - this.lastShared) / 1000)} seconds before sharing again!`);
       return;
     }
     this.lastShared = now;
-    this.discord.shareImage(this.context.canvas);
+    this.discord.shareImage(this.context.canvas)
+      .subscribe(
+        () => this.chat.addSystemMessage('Image shared on discord!', 'green'),
+        err => {
+          console.error(err);
+          this.chat.addSystemError(`Sharing failed: ${err.error.message}`)
+        }
+      )
   }
 
   undo() {

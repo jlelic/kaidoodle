@@ -1,8 +1,10 @@
 import { Injectable } from '@angular/core';
 import { ApiService } from '../api.service';
-
 import { canvasToBlob } from 'blob-util';
+import 'rxjs/add/operator/switchMap';
 import { fromPromise } from 'rxjs/observable/fromPromise';
+import { fromEvent } from 'rxjs/observable/fromEvent';
+import { Observable } from 'rxjs/Observable';
 
 @Injectable()
 export class DiscordService {
@@ -10,15 +12,16 @@ export class DiscordService {
   constructor(private api: ApiService) {
   }
 
-  shareImage(canvas: HTMLCanvasElement) {
+  shareImage(canvas: HTMLCanvasElement): Observable<any> {
     return fromPromise(canvasToBlob(canvas))
-      .do(blob => {
+      .switchMap(blob => {
         const reader = new FileReader();
-        reader.onload = () => {
-          this.api.post('discord/share', { data: String.fromCharCode.apply(null, new Uint8Array(reader.result ))}).subscribe()
-        };
-        reader.readAsArrayBuffer(blob);
+        const fileReader$: Observable<any> = fromEvent(reader, 'load');
+        reader.readAsBinaryString(blob);
+        return fileReader$;
       })
-      .subscribe();
+      .switchMap(event => {
+        return this.api.post('discord/share', { data: event.target.result });
+      });
   }
 }

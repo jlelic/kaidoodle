@@ -697,9 +697,23 @@ app.delete('/api/word/:word', (req, res, next) => {
 
 });
 
+let lastSharedTime;
+let lastSharedBy;
 app.post('/api/discord/share', (req, res, next) => {
-  DiscordBot.shareImage(req.user.login, req.body.data);
-  res.json({});
+  const now = getUnixTime();
+  if (now - lastSharedTime < 5) {
+    throw `${lastSharedBy} already shared the image ${now-lastSharedTime} seconds ago!`
+  }
+  lastSharedTime = getUnixTime();
+  lastSharedBy = req.user.login;
+  DiscordBot.shareImage(req.user.login, req.body.data)
+    .then((msg) => {
+      sendChatMessageToAllPlayers(
+        `${lastSharedBy} shared <a target="_blank" href="${msg.attachments.first().proxyURL}">this image</a> on the discord channel!`,
+        '#7586d6');
+      res.json({});
+    })
+    .catch(err => next(err));
 });
 
 

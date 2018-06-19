@@ -5,7 +5,7 @@ import { Subscription } from 'rxjs/Subscription';
 import { CommunicationService } from '../../core/communication.service';
 import { SoundsService } from '../../core/sounds.service';
 
-import * as ChatMessage from '../../../../shared/messages/chat-message';
+import { ChatService } from '../../core/chat/chat.service';
 
 
 @Component({
@@ -19,15 +19,24 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   form: FormGroup;
   messageSubscription: Subscription;
-  messages = [];
   keepScrollingToBottom = true;
 
-  constructor(private communication: CommunicationService, private fb: FormBuilder, private sounds: SoundsService) {
-    this.messageSubscription = this.communication.incomingMessages.subscribe(({ type, data }) => {
-      if (type === ChatMessage.type) {
-        this.processChatMessage(data);
+  constructor(private communication: CommunicationService,
+              private service: ChatService,
+              private fb: FormBuilder,
+              private sounds: SoundsService) {
+    this.messageSubscription = this.service.messageAdded.subscribe(data => {
+      const el = this.chatHistoryElement.nativeElement;
+      this.keepScrollingToBottom = data.sender == this.communication.name || el.scrollHeight - el.offsetHeight - el.scrollTop < 5;
+
+      if (data.system && data.text.startsWith('You guessed the word')) {
+        this.sounds.playOk();
       }
     });
+  }
+
+  get messages() {
+    return this.service.messages;
   }
 
   ngOnInit() {
@@ -54,30 +63,17 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     });
   }
 
-  processChatMessage(data) {
-    const el = this.chatHistoryElement.nativeElement;
-    this.keepScrollingToBottom = data.sender == this.communication.name || el.scrollHeight - el.offsetHeight - el.scrollTop < 5;
-
-    data.system = data.sender.startsWith('/');
-    if (data.system && data.text.startsWith('You guessed the word')) {
-      this.sounds.playOk();
-    }
-    this.messages.push(data)
-  }
-
   onSubmit(event) {
     event.preventDefault();
     const { input } = this.form.value;
-    if(!input || !input.length) {
+    if (!input || !input.length) {
       return;
     }
-    const message = new ChatMessage(this.communication.name, input);
-    this.processChatMessage(message.getPayload());
-    this.communication.send(message);
+    this.service.sendMessage(input);
     this.form.controls.input.reset();
   }
 
   scrollToBottom(force = false): void {
-      this.chatHistoryElement.nativeElement.scrollTop = this.chatHistoryElement.nativeElement.scrollHeight;
+    this.chatHistoryElement.nativeElement.scrollTop = this.chatHistoryElement.nativeElement.scrollHeight;
   }
 }

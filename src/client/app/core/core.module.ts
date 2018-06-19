@@ -9,6 +9,7 @@ import { PlayersService } from './players.service';
 import { SoundsService } from './sounds.service';
 import { LoggedInGuard } from './auth/logged-in.guard';
 import { DiscordService } from './discord/discord.service';
+import { ChatService } from './chat/chat.service';
 
 @NgModule({
   imports: [
@@ -18,6 +19,7 @@ import { DiscordService } from './discord/discord.service';
   providers: [
     ApiService,
     AuthService,
+    ChatService,
     CommunicationService,
     CookiesService,
     DiscordService,
