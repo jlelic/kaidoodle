@@ -378,8 +378,6 @@ const wsHandlers = {
         }
         console.log(`Identified player ${newPlayerName}`);
         socket.emit(HandshakeMessage.type, { name: newPlayerName });
-        drawHistory.forEach((data) => socket.emit(DrawMessage.type, data));
-        chatHistory.forEach((data) => socket.emit(ChatMessage.type, data));
 
         if (gameState === STATE_PLAYING && lastGameId !== gameId) {
           score = 0;
@@ -402,6 +400,9 @@ const wsHandlers = {
         } else if (gameState == STATE_CHOOSING_WORD) {
           socket.emit(ChatMessage.type, new ChatMessage(SERVER_NAME, `${drawingPlayerName} is choosing a word`, 'gray').getPayload());
         }
+
+        drawHistory.forEach((data) => socket.emit(DrawMessage.type, data));
+        chatHistory.forEach((data) => socket.emit(ChatMessage.type, data));
 
         playerNames.forEach(oldPlayerName => {
           players[oldPlayerName].socket.emit(PlayerMessage.type, new PlayerMessage(newPlayerName, players[newPlayerName]).getPayload());
