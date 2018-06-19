@@ -8,6 +8,7 @@ import { CommunicationService } from './communication.service';
 import { PlayersService } from './players.service';
 import { SoundsService } from './sounds.service';
 import { LoggedInGuard } from './auth/logged-in.guard';
+import { DiscordService } from './discord/discord.service';
 
 @NgModule({
   imports: [
@@ -19,6 +20,7 @@ import { LoggedInGuard } from './auth/logged-in.guard';
     AuthService,
     CommunicationService,
     CookiesService,
+    DiscordService,
     LoggedInGuard,
     PlayersService,
     SoundsService

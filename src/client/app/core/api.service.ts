@@ -4,11 +4,10 @@ import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/operator/do';
 
 
-
 @Injectable()
 export class ApiService {
 
-  defaultOptions = { headers: { 'Content-Type': 'application/json', 'authorization': '' } };
+  defaultOptions = { headers: { 'Content-Type': 'application/json; charset=utf-8', 'authorization': '' } };
 
   constructor(private http: HttpClient) {
   }

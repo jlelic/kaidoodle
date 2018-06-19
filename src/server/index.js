@@ -9,6 +9,8 @@ const leven = require('leven');
 const colorString = require('color-string');
 const checkWord = (require('check-word')('en'));
 
+const DiscordBot = require('./discord-bot');
+
 const UserModel = require('./models/user');
 const WordModel = require('./models/word');
 
@@ -535,10 +537,12 @@ app.use((req, res, next) => {
 });
 
 app.use(express.urlencoded({ extended: false }));
-app.use(express.json());
+app.use(express.json({ type: 'application/json', limit: '10mb' }));
 
 
 app.post('/api/login', (req, res, next) => {
+  console.log(req.body);
+
   const { login, password, newAccount } = req.body;
 
   UserModel.findOne({ login })
@@ -692,6 +696,12 @@ app.delete('/api/word/:word', (req, res, next) => {
     .catch(err => next(err));
 
 });
+
+app.post('/api/discord/share', (req, res, next) => {
+  DiscordBot.shareImage(req.user.login, req.body.data);
+  res.json({});
+});
+
 
 app.use((error, req, res, next) => {
   console.error(error);

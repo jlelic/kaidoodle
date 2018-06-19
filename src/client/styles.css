@@ -10,6 +10,7 @@ body {
 }
 
 .mat-button, .mat-button-toggle {
+  min-width: 24px !important;
   border: solid 3px rgba(80, 79, 82, 0.72) !important;
   border-radius: 5px !important;
 }

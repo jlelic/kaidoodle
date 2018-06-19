@@ -8,8 +8,11 @@
       <span>| Time: {{time}} s</span>
     </h3>
   </div>
+
   <div id="gameContainer">
+
     <player-list></player-list>
+
     <span>
       <span id="canvasContainer">
         <canvas id="gameCanvas" #canvas></canvas>
@@ -48,19 +51,27 @@
         </span>
       </span>
     </span>
+
     <chat></chat>
+
   </div>
+  <button id="shareToDiscord" (click)="shareImage()" mat-button><img class="toolIcon" src="assets/icons/discord.png"> SHARE</button>
 </div>
+
 <div *ngIf="canDraw" id="toolsContainer">
+
   <toolbar [(tool)]="tool"></toolbar>
+
   <color-picker (colorSelected)="onColorSelected($event)"></color-picker>
+
   <thickness-picker (thicknessSelected)="onThicknessSelected($event)"></thickness-picker>
+
   <div class="toolGroup">
     <button (click)="undo()" mat-button>
-      <img class="toolIcon" [src]="'assets/icons/tools/undo.png'">
+      <img class="toolIcon" src="assets/icons/tools/undo.png">
     </button>
     <button (click)="resetDrawing()" mat-button>
-      <img class="toolIcon" [src]="'assets/icons/tools/clear.png'">
+      <img class="toolIcon" src="assets/icons/tools/clear.png">
     </button>
   </div>
 </div>

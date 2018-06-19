@@ -13,6 +13,7 @@ import * as WordChoicesMessage from '../../../shared/messages/word-choices-messa
 import { CommunicationService } from '../core/communication.service';
 import { PlayersService } from '../core/players.service';
 import { SoundsService } from '../core/sounds.service';
+import { DiscordService } from '../core/discord/discord.service';
 
 @Component({
   selector: 'app-game',
@@ -44,8 +45,15 @@ export class GameComponent implements OnInit, OnDestroy {
   roundResults = null;
   gameResults = null;
   drawHistory = [];
+  lastShared;
 
-  constructor(private communication: CommunicationService, private players: PlayersService, private sounds: SoundsService) {
+
+  constructor(
+    private communication: CommunicationService,
+    private discord: DiscordService,
+    private players: PlayersService,
+    private sounds: SoundsService
+  ) {
   }
 
   get name() {
@@ -124,6 +132,7 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.drawHistory = [];
     this.communication.disconnect();
     this.messageSubscription.unsubscribe();
   }
@@ -333,6 +342,16 @@ export class GameComponent implements OnInit, OnDestroy {
     const message = new DrawMessage('clear');
     this.processDrawMessage(message.getPayload());
     this.communication.send(message);
+  }
+
+  shareImage() {
+    const now: any = new Date();
+    if(this.lastShared && now - this.lastShared < 30*1000) {
+      window.alert(`Wait ${30 - Math.round((now - this.lastShared)/1000)} seconds before sharing again!`);
+      return;
+    }
+    this.lastShared = now;
+    this.discord.shareImage(this.context.canvas);
   }
 
   undo() {
