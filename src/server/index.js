@@ -66,6 +66,7 @@ const chatHistory = [];
 
 let gameState = STATE_IDLE;
 let drawingPlayerName = '';
+let lastDrawingPlayerName;
 let word;
 let wordCharLength;
 let wordHint;
@@ -192,6 +193,8 @@ const prepareRound = () => {
 
 const startRound = () => {
   clearInterval(timerUpdateInterval);
+
+  lastDrawingPlayerName = drawingPlayerName;
 
   wordCharLength = word.split('').reduce((length, char) => {
     if (char.match(/[a-zA-Z]/)) {
@@ -702,11 +705,23 @@ let lastSharedBy;
 app.post('/api/discord/share', (req, res, next) => {
   const now = getUnixTime();
   if (now - lastSharedTime < 5) {
-    throw `${lastSharedBy} already shared the image ${now-lastSharedTime} seconds ago!`
+    throw `${lastSharedBy} already shared the image ${now - lastSharedTime} seconds ago!`
   }
   lastSharedTime = getUnixTime();
   lastSharedBy = req.user.login;
-  DiscordBot.shareImage(req.user.login, req.body.data)
+  let text;
+  switch (gameState) {
+    case STATE_PLAYING:
+      text = `${drawingPlayerName} is drawing ${wordHint}. Shared by ${lastSharedBy}`;
+      break;
+    case STATE_COOLDOWN:
+    case STATE_CHOOSING_WORD:
+      text = `${lastDrawingPlayerName} was drawing ${word}. Shared by ${lastSharedBy}`;
+      break;
+    default:
+      text = `Shared by ${lastSharedBy}`;
+  }
+  DiscordBot.shareImage(text, req.body.data)
     .then((msg) => {
       sendChatMessageToAllPlayers(
         `${lastSharedBy} shared <a target="_blank" href="${msg.attachments.first().proxyURL}">this image</a> on the discord channel!`,

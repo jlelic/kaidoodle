@@ -154,7 +154,7 @@ client.on("message", async message => {
   }
 });
 
-const shareImage = (name, data) => mainChannel.send(`Shared by ${name}`, new Discord.Attachment(new Buffer(data, 'binary'), 'image.png'));
+const shareImage = (text, data) => mainChannel.send(text, new Discord.Attachment(new Buffer(data, 'binary'), 'image.png'));
 
 
 client.login(config.token);
