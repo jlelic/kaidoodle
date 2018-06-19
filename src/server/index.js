@@ -219,6 +219,7 @@ const startRound = () => {
     players[name].socket.emit(message.getType(), message.getPayload());
     roundScores[name] = 0;
   });
+  drawHistory.splice(0, drawHistory.length);
   sendChatMessageToAllPlayers(`${drawingPlayerName} is drawing now!`);
 
   guessingTime = TIME_ROUND_BASE;
