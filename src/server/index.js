@@ -331,7 +331,9 @@ const startTimer = (updateCallback, doneCallback) => {
 };
 
 const sendChatMessageToAllPlayers = (text, color = 'gray') => {
-  sendToAllPlayers(new ChatMessage(SERVER_NAME, text, color));
+  const message = new ChatMessage(SERVER_NAME, text, color);
+  sendToAllPlayers(message);
+  chatHistory.push(message.getPayload());
 };
 
 const sendToAllPlayers = (message) => {
