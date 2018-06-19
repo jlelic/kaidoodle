@@ -48,6 +48,10 @@ export class GameComponent implements OnInit, OnDestroy {
   drawHistory = [];
   lastShared;
 
+  mouseDownListener;
+  mouseUpListener;
+  mouseMoveListener;
+
 
   constructor(private chat: ChatService,
               private communication: CommunicationService,
@@ -77,9 +81,15 @@ export class GameComponent implements OnInit, OnDestroy {
     const canvas = this.canvas.nativeElement;
     canvas.height = this.height;
     canvas.width = this.width;
-    window.addEventListener('mousedown', e => this.onMouseDown(e));
-    window.addEventListener('mouseup', e => this.onMouseUp(e));
-    window.addEventListener('mousemove', e => this.onMouseMove(e));
+
+    // fuck me
+    this.mouseDownListener = this.onMouseDown.bind(this);
+    this.mouseUpListener = this.onMouseUp.bind(this);
+    this.mouseMoveListener = this.onMouseMove.bind(this);
+    window.addEventListener('mousedown', this.mouseDownListener);
+    window.addEventListener('mouseup', this.mouseUpListener);
+    window.addEventListener('mousemove', this.mouseMoveListener);
+
     this.context = canvas.getContext('2d');
     this.context.imageSmoothingEnabled = false;
     this.clearCanvas();
@@ -133,6 +143,9 @@ export class GameComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.drawHistory = [];
+    window.removeEventListener('mousedown', this.mouseDownListener);
+    window.removeEventListener('mouseup', this.mouseUpListener);
+    window.removeEventListener('mousemove', this.mouseMoveListener);
     this.communication.disconnect();
     this.messageSubscription.unsubscribe();
   }
