@@ -1,7 +1,7 @@
 const Discord = require("discord.js");
 const token = process.env.DISCORD_BOT_TOKEN || require('./bot-token');
 
-const CHANNEL_NAME = 'tluste_kreslenie';
+const CHANNEL_NAME = 'kaidoodle';
 
 const client = new Discord.Client();
 
