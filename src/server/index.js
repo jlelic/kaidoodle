@@ -380,7 +380,7 @@ const wsHandlers = {
         console.log(`Identified player ${newPlayerName}`);
         socket.emit(HandshakeMessage.type, { name: newPlayerName });
 
-        if (gameState === STATE_PLAYING && lastGameId !== gameId) {
+        if (lastGameId !== gameId) {
           score = 0;
           user.lastGameId = gameId;
           user.save().then(() => {
