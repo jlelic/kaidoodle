@@ -58,7 +58,7 @@ const SCORE_TIME_MULTIPLIER = 0.5;
 const SCORE_TIME_MAXIMUM = 30;
 const SCORE_BASE = 10;
 
-const MAX_ROUNDS = 2;
+const MAX_ROUNDS = 3;
 
 const players = {};
 const drawHistory = [];
@@ -233,10 +233,7 @@ const startRound = () => {
       checkWordHintAvailable(remainingTime);
       return remainingTime <= 0;
     },
-    () => {
-      sendChatMessageToAllPlayers(`Round over, the word was "${word}"`);
-      endRound();
-    }
+    () => endRound()
   );
   console.log(`Starting round, word: ${word}, player ${drawingPlayerName} drawing`);
   gameState = STATE_PLAYING;
@@ -267,11 +264,12 @@ const endRound = () => {
     sendToAllPlayers(new PlayerMessage(drawingPlayerName, players[drawingPlayerName]));
   }
 
-  drawingPlayerName = null;
   sendChatMessageToAllPlayers(
-    `The word was ${word}. ${playersGuessed}/${playersGuessing} guessed`,
+    `The word was ${word}. ${playersGuessed}/${playersGuessing} guessed. ${drawingPlayerName} receives ${Math.round(ratioGuessed*100)}% of ${winnerScore} = ${drawingPlayerScore}`,
     colorString.to.hex([200 - 100 * ratioGuessed, 100 + 100 * ratioGuessed, 0])
   );
+
+  drawingPlayerName = null;
   sendToAllPlayers(new EndRoundMessage(word, roundScores));
   clearInterval(timerUpdateInterval);
   timerUpdateInterval = startTimer(
