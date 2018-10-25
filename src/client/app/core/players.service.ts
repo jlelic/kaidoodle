@@ -59,6 +59,11 @@ export class PlayersService {
     return this._drawing;
   }
 
+  public getplayersScoresAsCopy() {
+    this.sortPlayers();
+    return this._players.map(({name, score}) => ({name, score}));
+  }
+
   private sortPlayers() {
     this._players.sort((a, b) => {
       const scoreDiff = b.score - a.score;
