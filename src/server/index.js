@@ -155,7 +155,7 @@ const prepareRound = () => {
   if (!drawingPlayerName) {
     drawnThisRound.clear();
     roundsPlayed++;
-    if (roundsPlayed == MAX_ROUNDS) {
+    if (roundsPlayed >= MAX_ROUNDS) {
       endGame();
     } else {
       prepareRound();
@@ -264,6 +264,10 @@ const endRound = () => {
     sendToAllPlayers(new PlayerMessage(drawingPlayerName, players[drawingPlayerName]));
   }
 
+  let msg = `The word was ${word}. ${playersGuessed}/${playersGuessing} guessed. ${drawingPlayerName} receives ${Math.round(ratioGuessed*100)}% of ${winnerScore} = ${drawingPlayerScore}`;
+  if(playersGuessed == 0) {
+    msg = `The word was ${word}. No one guessed. ${drawingPlayerName} loses ${-SCORE_NO_CORRECT_GUESSES} points`;
+  }
   sendChatMessageToAllPlayers(
     `The word was ${word}. ${playersGuessed}/${playersGuessing} guessed. ${drawingPlayerName} receives ${Math.round(ratioGuessed*100)}% of ${winnerScore} = ${drawingPlayerScore}`,
     colorString.to.hex([200 - 100 * ratioGuessed, 100 + 100 * ratioGuessed, 0])
