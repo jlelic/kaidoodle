@@ -168,8 +168,8 @@ const prepareRound = () => {
       console.log(err);
       return;
     }
-    const wordChoices = randomWords.map(({ word, played, addedBy }) => ({word, played, addedBy}));
-    console.log(`Preparing round, drawing ${drawingPlayerName}, choices: ${wordChoices.map(({word}) => word).join(', ')}`);
+    const wordChoices = randomWords.map(({ word, played, addedBy }) => ({ word, played, addedBy }));
+    console.log(`Preparing round, drawing ${drawingPlayerName}, choices: ${wordChoices.map(({ word }) => word).join(', ')}`);
     players[drawingPlayerName].socket.emit(WordChoicesMessage.type, new WordChoicesMessage(wordChoices).getPayload());
     sendChatMessageToAllPlayers(`${drawingPlayerName} is choosing a word`);
 
@@ -262,18 +262,18 @@ const endRound = () => {
     sendToAllPlayers(new PlayerMessage(drawingPlayerName, players[drawingPlayerName]));
   }
 
-  let msg = `The word was ${word}. ${playersGuessed}/${playersGuessing} guessed. ${drawingPlayerName} receives ${Math.round(ratioGuessed*100)}% of ${winnerScore} = ${drawingPlayerScore}`;
-  if(playersGuessed == 0) {
+  let msg = `The word was ${word}. ${playersGuessed}/${playersGuessing} guessed. ${drawingPlayerName} receives ${Math.round(ratioGuessed * 100)}% of ${winnerScore} = ${drawingPlayerScore}`;
+  if (playersGuessed == 0) {
     msg = `The word was ${word}. No one guessed. ${drawingPlayerName} loses ${-config.SCORE_NO_CORRECT_GUESSES} points`;
   }
   sendChatMessageToAllPlayers(
-    `The word was ${word}. ${playersGuessed}/${playersGuessing} guessed. ${drawingPlayerName} receives ${Math.round(ratioGuessed*100)}% of ${winnerScore} = ${drawingPlayerScore}`,
+    `The word was ${word}. ${playersGuessed}/${playersGuessing} guessed. ${drawingPlayerName} receives ${Math.round(ratioGuessed * 100)}% of ${winnerScore} = ${drawingPlayerScore}`,
     colorString.to.hex([200 - 100 * ratioGuessed, 100 + 100 * ratioGuessed, 0])
   );
   updateWordStats();
 
   tempIntervals.forEach(clearInterval);
-  maybeGiftPowerUp();
+  grantAbility();
 
   drawingPlayerName = null;
   sendToAllPlayers(new EndRoundMessage(word, roundScores));
@@ -371,40 +371,45 @@ const generateWordHint = (addHint = false) => {
   return result;
 };
 
-const maybeGiftPowerUp = () => {
-  if(Math.random() > config.POWER_UP_CHANCE) {
+const grantAbility = () => {
+  if (Math.random() > config.POWER_UP_CHANCE) {
     return;
   }
   let lowestScore = 900000;
-  let lastPlayerName = null;
-  Object.keys(players).forEach(name => {
-    if(players[name].score < lowestScore) {
-      lastPlayerName = name;
+  let playerToReceive = null;
+  const playerNames = Object.keys(players);
+  playerNames.forEach(name => {
+    if (players[name].score < lowestScore) {
+      playerToReceive = name;
       lowestScore = players[name].score;
     }
   });
 
-  if(!lastPlayerName || players[lastPlayerName].powerUps.length >= config.MAX_POWER_UPS) {
+  if (Math.random() < config.POWER_UP_TO_RANDOM_PLAYER_CHANCE) {
+    playerToReceive = playerNames[Math.floor(Math.random() * playerNames.length)];
+  }
+
+  if (!playerToReceive || players[playerToReceive].powerUps.length >= config.MAX_POWER_UPS) {
     return;
   }
 
   const powerUpList = Object.keys(config.POWER_UPS);
-  const powerUpToGift = powerUpList[Math.floor(Math.random()*powerUpList.length)];
+  const powerUpToGift = powerUpList[Math.floor(Math.random() * powerUpList.length)];
 
-  players[lastPlayerName].powerUps.push(powerUpToGift);
-  players[lastPlayerName].socket.emit(PowerUpEnabledMessage.type, new PowerUpEnabledMessage(powerUpToGift).getPayload());
-  players[lastPlayerName].socket.emit(ChatMessage.type,
+  players[playerToReceive].powerUps.push(powerUpToGift);
+  players[playerToReceive].socket.emit(PowerUpEnabledMessage.type, new PowerUpEnabledMessage(powerUpToGift).getPayload());
+  players[playerToReceive].socket.emit(ChatMessage.type,
     new ChatMessage(
       config.SERVER_CHAT_NAME,
       `You have received ability '${config.POWER_UPS[powerUpToGift].name}'! You can use it while guessing with more than ${config.POWER_UP_TIME_LEFT_LIMIT} seconds left!`,
       COLOR_TEXT_POWER_UP
     ).getPayload()
   );
-  console.log(`Player ${lastPlayerName} received power-up ${powerUpToGift}`);
+  console.log(`Player ${playerToReceive} received ability ${powerUpToGift}`);
 };
 
 const updateWordStats = () => {
-  if(Object.keys(players).length < 4) {
+  if (Object.keys(players).length < 4) {
     return;
   }
   WordModel.findOne({ word })
@@ -530,7 +535,7 @@ const wsHandlers = {
     let canCast = false;
     let powerUpIndex;
     players[playerName].powerUps.forEach((playerPowerUp, i) => {
-      if(playerPowerUp === powerUp.id) {
+      if (playerPowerUp === powerUp.id) {
         canCast = true;
         powerUpIndex = i;
       }
@@ -538,7 +543,7 @@ const wsHandlers = {
 
     socket.emit(PowerUpEnabledMessage.type, new PowerUpEnabledMessage(data.powerUp, false).getPayload());
 
-    if(!canCast){
+    if (!canCast) {
       console.error(`${playerName} cannot use power-up ${powerUp.id}`);
       players[playerName].socket.emit(ChatMessage.type,
         new ChatMessage(
@@ -560,7 +565,7 @@ const wsHandlers = {
     socket.broadcast.emit(PowerUpTriggerMessage.type, new PowerUpTriggerMessage(data.powerUp, true, playerName).getPayload());
     const chatMsg = new ChatMessage(config.SERVER_CHAT_NAME, powerUp.message, COLOR_TEXT_POWER_UP);
     Object.keys(players).forEach(pName => {
-      if(pName === drawingPlayerName || pName === playerName) {
+      if (pName === drawingPlayerName || pName === playerName) {
         return
       }
       players[pName].socket.emit(ChatMessage.type, chatMsg.getPayload());
@@ -758,6 +763,7 @@ app.post('/api/words', (req, res, next) => {
     } else if (word.length < 3) {
       short.push(word)
     } else {
+      word = word.toLowerCase();
       validWords.push({ word, addedBy })
     }
   });
