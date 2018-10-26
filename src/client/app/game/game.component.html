@@ -63,23 +63,23 @@
   <button id="shareToDiscord" (click)="shareImage()" mat-button><img class="toolIcon" src="assets/icons/discord.png"> SHARE</button>
 </div>
 
-<!--<div *ngIf="canDraw" class="tools-container">-->
-
-  <!--<toolbar [(tool)]="tool"></toolbar>-->
-
-  <!--<color-picker (colorSelected)="onColorSelected($event)"></color-picker>-->
-
-  <!--<thickness-picker (thicknessSelected)="onThicknessSelected($event)"></thickness-picker>-->
-
-  <!--<div class="toolGroup">-->
-    <!--<button (click)="undo()" mat-button>-->
-      <!--<img class="toolIcon" src="assets/icons/tools/undo.png">-->
-    <!--</button>-->
-    <!--<button (click)="resetDrawing()" mat-button>-->
-      <!--<img class="toolIcon" src="assets/icons/tools/clear.png">-->
-    <!--</button>-->
-  <!--</div>-->
-<!--</div>-->
 <div *ngIf="canDraw" class="tools-container">
+
+  <toolbar [(tool)]="tool"></toolbar>
+
+  <color-picker (colorSelected)="onColorSelected($event)"></color-picker>
+
+  <thickness-picker (thicknessSelected)="onThicknessSelected($event)"></thickness-picker>
+
+  <div class="toolGroup">
+    <button (click)="undo()" mat-button>
+      <img class="toolIcon" src="assets/icons/tools/undo.png">
+    </button>
+    <button (click)="resetDrawing()" mat-button>
+      <img class="toolIcon" src="assets/icons/tools/clear.png">
+    </button>
+  </div>
+</div>
+<div *ngIf="!canDraw" class="tools-container">
   <power-ups></power-ups>
 </div>

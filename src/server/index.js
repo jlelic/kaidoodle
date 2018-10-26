@@ -52,26 +52,6 @@ const STATE_PLAYING = 'PLAYING';
 const STATE_COOLDOWN = 'COOLDOWN';
 const STATE_CHOOSING_WORD = 'CHOOSING_WORD';
 
-const SERVER_NAME = '/server';
-
-const TIME_ROUND_BASE = 80;
-const TIME_ROUND_REDUCTION = 5;
-const TIME_ROUND_MINIMUM = 10;
-const TIME_ROUND_HINT_START = 30;
-const TIME_WORD_CHOOSE = 20;
-const TIME_COOLDOWN = 5;
-
-const SCORE_NO_CORRECT_GUESSES = -10;
-const SCORE_BONUS_FIRST = 4;
-const SCORE_BONUS_MAX = 6;
-const SCORE_BONUS_REDUCTION = 1;
-const SCORE_TIME_MULTIPLIER = 0.5;
-const SCORE_TIME_MAXIMUM = 30;
-const SCORE_BASE = 10;
-
-const MAX_ROUNDS = 3;
-const MAX_POWER_UPS = 3;
-
 const COLOR_TEXT_POWER_UP = '#9300d6';
 
 const players = {};
@@ -171,7 +151,7 @@ const prepareRound = () => {
   if (!drawingPlayerName) {
     drawnThisRound.clear();
     roundsPlayed++;
-    if (roundsPlayed >= MAX_ROUNDS) {
+    if (roundsPlayed >= config.MAX_ROUNDS) {
       endGame();
     } else {
       prepareRound();
@@ -195,7 +175,7 @@ const prepareRound = () => {
 
     timerUpdateInterval = startTimer(
       (elapsedTime) => {
-        remainingTime = TIME_WORD_CHOOSE - elapsedTime;
+        remainingTime = config.TIME_WORD_CHOOSE - elapsedTime;
         sendToAllPlayers(new TimerMessage(remainingTime));
         return remainingTime <= 0;
       },
@@ -238,10 +218,10 @@ const startRound = () => {
   drawHistory.splice(0, drawHistory.length);
   sendChatMessageToAllPlayers(`${drawingPlayerName} is drawing now!`);
 
-  guessingTime = TIME_ROUND_BASE;
+  guessingTime = config.TIME_ROUND_BASE;
   remainingTime = guessingTime;
   winnerScore = 0;
-  scoreBonus = SCORE_BONUS_MAX;
+  scoreBonus = config.SCORE_BONUS_MAX;
   timerUpdateInterval = startTimer(
     (elapsedTime) => {
       remainingTime = guessingTime - elapsedTime;
@@ -272,7 +252,7 @@ const endRound = () => {
   });
 
   const ratioGuessed = playersGuessed / playersGuessing;
-  const drawingPlayerScore = playersGuessed > 0 ? Math.round(winnerScore * ratioGuessed) : SCORE_NO_CORRECT_GUESSES;
+  const drawingPlayerScore = playersGuessed > 0 ? Math.round(winnerScore * ratioGuessed) : config.SCORE_NO_CORRECT_GUESSES;
   roundScores[drawingPlayerName] = drawingPlayerScore;
   if (players[drawingPlayerName]) {
     players[drawingPlayerName].score += drawingPlayerScore;
@@ -282,13 +262,14 @@ const endRound = () => {
 
   let msg = `The word was ${word}. ${playersGuessed}/${playersGuessing} guessed. ${drawingPlayerName} receives ${Math.round(ratioGuessed*100)}% of ${winnerScore} = ${drawingPlayerScore}`;
   if(playersGuessed == 0) {
-    msg = `The word was ${word}. No one guessed. ${drawingPlayerName} loses ${-SCORE_NO_CORRECT_GUESSES} points`;
+    msg = `The word was ${word}. No one guessed. ${drawingPlayerName} loses ${-config.SCORE_NO_CORRECT_GUESSES} points`;
   }
   sendChatMessageToAllPlayers(
     `The word was ${word}. ${playersGuessed}/${playersGuessing} guessed. ${drawingPlayerName} receives ${Math.round(ratioGuessed*100)}% of ${winnerScore} = ${drawingPlayerScore}`,
     colorString.to.hex([200 - 100 * ratioGuessed, 100 + 100 * ratioGuessed, 0])
   );
 
+  tempIntervals.forEach(clearInterval);
   maybeGiftPowerUp();
 
   drawingPlayerName = null;
@@ -296,7 +277,7 @@ const endRound = () => {
   clearInterval(timerUpdateInterval);
   timerUpdateInterval = startTimer(
     (elapsedTime) => {
-      const remainingTime = TIME_COOLDOWN - elapsedTime;
+      const remainingTime = config.TIME_COOLDOWN - elapsedTime;
       sendToAllPlayers(new TimerMessage(remainingTime));
       return remainingTime <= 0;
     },
@@ -322,7 +303,7 @@ const checkEveryoneGuessed = () => {
 
 const checkWordHintAvailable = (time) => {
   const maxHints = Math.ceil(wordCharLength / 3);
-  if (time <= TIME_ROUND_HINT_START * (maxHints - hintsShown.size) / maxHints) {
+  if (time <= config.TIME_ROUND_HINT_START * (maxHints - hintsShown.size) / maxHints) {
     wordHint = generateWordHint(true);
     players[drawingPlayerName].socket.broadcast.emit(WordMessage.type, new WordMessage(wordHint).getPayload());
   }
@@ -353,7 +334,7 @@ const startTimer = (updateCallback, doneCallback) => {
 };
 
 const sendChatMessageToAllPlayers = (text, color = 'gray') => {
-  const message = new ChatMessage(SERVER_NAME, text, color);
+  const message = new ChatMessage(config.SERVER_CHAT_NAME, text, color);
   sendToAllPlayers(message);
   chatHistory.push(message.getPayload());
 };
@@ -388,7 +369,7 @@ const generateWordHint = (addHint = false) => {
 };
 
 const maybeGiftPowerUp = () => {
-  if(Math.random() < 0.5) {
+  if(Math.random() > config.POWER_UP_CHANCE) {
     return;
   }
   let lowestScore = 900000;
@@ -399,7 +380,7 @@ const maybeGiftPowerUp = () => {
     }
   });
 
-  if(!lastPlayerName || lastPlayerName.powerUps >= MAX_POWER_UPS) {
+  if(!lastPlayerName || lastPlayerName.powerUps >= config.MAX_POWER_UPS) {
     return;
   }
 
@@ -407,6 +388,13 @@ const maybeGiftPowerUp = () => {
   const powerUpToGift = powerUpList[Math.floor(Math.random()*powerUpList.length)];
 
   players[lastPlayerName].socket.emit(PowerUpEnabledMessage.type, new PowerUpEnabledMessage(powerUpToGift).getPayload());
+  players[lastPlayerName].socket.emit(ChatMessage.type,
+    new ChatMessage(
+      config.SERVER_CHAT_NAME,
+      `You have received ability '${config.POWER_UPS[powerUpToGift].name}'! You can use it while guessing with more than ${config.POWER_UP_TIME_LEFT_LIMIT} seconds left!`,
+      COLOR_TEXT_POWER_UP
+    ).getPayload()
+  );
   console.log(`Player ${lastPlayerName} received power-up ${powerUpToGift}`);
 };
 
@@ -444,7 +432,7 @@ const wsHandlers = {
           roundScores[newPlayerName] = 0;
           socket.emit(StartRoundMessage.type, new StartRoundMessage(drawingPlayerName, wordHint, roundsPlayed + 1).getPayload());
         } else if (gameState == STATE_CHOOSING_WORD) {
-          socket.emit(ChatMessage.type, new ChatMessage(SERVER_NAME, `${drawingPlayerName} is choosing a word`, 'gray').getPayload());
+          socket.emit(ChatMessage.type, new ChatMessage(config.SERVER_CHAT_NAME, `${drawingPlayerName} is choosing a word`, 'gray').getPayload());
         }
 
         drawHistory.forEach((data) => socket.emit(DrawMessage.type, data));
@@ -482,17 +470,20 @@ const wsHandlers = {
     }
     data.sender = playerName;
     if (gameState == STATE_PLAYING && word && data.text && playerName != drawingPlayerName && data.text.toLowerCase() === word.toLowerCase()) {
-      const score = SCORE_BASE + Math.round(Math.min(SCORE_TIME_MAXIMUM, remainingTime * SCORE_TIME_MULTIPLIER)) + scoreBonus + (winnerScore ? 0 : SCORE_BONUS_FIRST);
+      const score = config.SCORE_BASE
+        + Math.round(Math.min(config.SCORE_TIME_MAXIMUM, remainingTime * config.SCORE_TIME_MULTIPLIER))
+        + scoreBonus
+        + (winnerScore ? 0 : config.SCORE_BONUS_FIRST);
       winnerScore = winnerScore || score;
-      scoreBonus -= SCORE_BONUS_REDUCTION;
+      scoreBonus -= config.SCORE_BONUS_REDUCTION;
       roundScores[playerName] = score;
       players[playerName].score += score;
       players[playerName].guessed = true;
-      socket.emit(ChatMessage.type, new ChatMessage(SERVER_NAME, `You guessed the word! +${score} points`, '#00cc00').getPayload());
-      socket.broadcast.emit(ChatMessage.type, new ChatMessage(SERVER_NAME, `${data.sender} guessed the word! +${score} points`, '#007700').getPayload());
+      socket.emit(ChatMessage.type, new ChatMessage(config.SERVER_CHAT_NAME, `You guessed the word! +${score} points`, '#00cc00').getPayload());
+      socket.broadcast.emit(ChatMessage.type, new ChatMessage(config.SERVER_CHAT_NAME, `${data.sender} guessed the word! +${score} points`, '#007700').getPayload());
       sendToAllPlayers(new PlayerMessage(playerName, players[playerName]));
       if (remainingTime > 10)
-        guessingTime = guessingTime - Math.min(TIME_ROUND_REDUCTION, Math.max(0, remainingTime - TIME_ROUND_MINIMUM));
+        guessingTime = guessingTime - Math.min(config.TIME_ROUND_REDUCTION, Math.max(0, remainingTime - config.TIME_ROUND_MINIMUM));
 
       updatePlayerScoreInDb(playerName);
 
@@ -505,9 +496,9 @@ const wsHandlers = {
     } else if (data.text && word) {
       const lDistance = leven(data.text, word);
       if (lDistance == 1) {
-        socket.emit(ChatMessage.type, new ChatMessage(SERVER_NAME, `${data.text} is really close!`, '#3153ff').getPayload());
-      } else if (lDistance == 2 && remainingTime <= TIME_ROUND_MINIMUM) {
-        socket.emit(ChatMessage.type, new ChatMessage(SERVER_NAME, `${data.text} is kinda close!`, '#5078cc').getPayload());
+        socket.emit(ChatMessage.type, new ChatMessage(config.SERVER_CHAT_NAME, `${data.text} is really close!`, '#3153ff').getPayload());
+      } else if (lDistance == 2 && remainingTime <= config.TIME_ROUND_MINIMUM) {
+        socket.emit(ChatMessage.type, new ChatMessage(config.SERVER_CHAT_NAME, `${data.text} is kinda close!`, '#5078cc').getPayload());
       }
     }
     socket.broadcast.emit(ChatMessage.type, data);
@@ -519,7 +510,7 @@ const wsHandlers = {
   [PowerUpTriggerMessage.type]: (socket, data, playerName) => {
     socket.broadcast.emit(PowerUpTriggerMessage.type, new PowerUpTriggerMessage(data.powerUp, true, playerName).getPayload());
     socket.emit(PowerUpEnabledMessage.type, new PowerUpEnabledMessage(data.powerUp, false).getPayload());
-    const chatMsg = new ChatMessage(SERVER_NAME, config.POWER_UPS[data.powerUp].message, COLOR_TEXT_POWER_UP);
+    const chatMsg = new ChatMessage(config.SERVER_CHAT_NAME, config.POWER_UPS[data.powerUp].message, COLOR_TEXT_POWER_UP);
     socket.broadcast.emit(ChatMessage.type, chatMsg.getPayload());
     const duration = config.POWER_UPS[data.powerUp].duration;
     const powerUpInterval = startTimer(

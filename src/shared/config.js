@@ -1,5 +1,27 @@
 const Config = {};
 
+Config.SERVER_CHAT_NAME = '/server';
+
+Config.TIME_ROUND_BASE = 80;
+Config.TIME_ROUND_REDUCTION = 5;
+Config.TIME_ROUND_MINIMUM = 10;
+Config.TIME_ROUND_HINT_START = 30;
+Config.TIME_WORD_CHOOSE = 20;
+Config.TIME_COOLDOWN = 5;
+
+Config.SCORE_NO_CORRECT_GUESSES = -10;
+Config.SCORE_BONUS_FIRST = 4;
+Config.SCORE_BONUS_MAX = 6;
+Config.SCORE_BONUS_REDUCTION = 1;
+Config.SCORE_TIME_MULTIPLIER = 0.5;
+Config.SCORE_TIME_MAXIMUM = 30;
+Config.SCORE_BASE = 10;
+
+Config.MAX_ROUNDS = 3;
+
+Config.MAX_POWER_UPS = 3;
+Config.POWER_UP_CHANCE = 1;
+
 const powerUps = {
   blackout: {
     name: "Blackout",
@@ -28,5 +50,7 @@ const powerUps = {
 };
 Object.keys(powerUps).forEach(id => powerUps[id].id = id);
 Config.POWER_UPS = powerUps;
+
+Config.POWER_UP_TIME_LEFT_LIMIT = 1;
 
 module.exports = Config;

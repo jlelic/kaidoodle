@@ -1,4 +1,4 @@
-<div id="toolbarContainer" class="toolGroup">
+<div *ngIf="service.canUse" id="toolbarContainer" class="toolGroup">
   <span *ngFor="let p of powerUps">
     <button mat-button (click)="use(p.id)" [title]="p.description">
       {{p.id}}

@@ -1,7 +1,7 @@
 class Message {
 
-  constructor(powerUp, active = true, player = '') {
-    this.payload = { powerUp, active, player };
+  constructor(powerUp, active = true) {
+    this.payload = { powerUp, active};
   }
 
   static get type() {

@@ -4,39 +4,60 @@ import { CommunicationService } from '../../core/communication.service';
 import * as PowerUpEnabledMessage from '../../../../shared/messages/power-up-enabled-message';
 import * as PowerUpTriggerMessage from '../../../../shared/messages/power-up-trigger-message';
 import * as StartRoundMessage from '../../../../shared/messages/start-round-message';
+import * as EndRoundMessage from '../../../../shared/messages/end-round-message';
+import * as TimerMessage from '../../../../shared/messages/timer-message';
 import * as config from '../../../../shared/config';
+import { PlayersService } from '../../core/players.service';
+import { AuthService } from '../../core/auth/auth.service';
 
 @Injectable()
 export class PowerUpsService {
 
   private _powerUps = [];
   private _effects = {};
+  private _isRoundGoingOn = false;
+  private _timeLeft = 0;
 
 
-  constructor(private communication: CommunicationService) {
+  constructor(private auth: AuthService, private communication: CommunicationService, private players: PlayersService) {
     this.communication.incomingMessages.subscribe(({ type, data }) => {
-      if (type === PowerUpEnabledMessage.type) {
+      switch (type) {
+       case PowerUpEnabledMessage.type:
         if(data.enabled){
           this._powerUps.push({...config.POWER_UPS[data.powerUp]});
         } else {
-          const index = this._powerUps.indexOf(({id}) => id == data.powerUp);
+          const index = this._powerUps.indexOf(({ id }) => id == data.powerUp);
           this._powerUps.splice(index, 1);
         }
-      } else if (type === PowerUpTriggerMessage.type) {
+        break;
+      case PowerUpTriggerMessage.type:
         const powerUp = data.powerUp;
         this._effects[powerUp] = this._effects[powerUp] || 0;
         const change = data.active ? 1 : -1;
         this._effects[powerUp] += change;
-        console.log(this._effects);
-      } else if (type === StartRoundMessage.type) {
+        break;
+      case StartRoundMessage.type:
+        this._isRoundGoingOn = true;
+        break;
+      case EndRoundMessage.type:
+        this._isRoundGoingOn = false;
         this.reset();
+        break;
+      case TimerMessage.type:
+        this._timeLeft = data.time;
+        break;
       }
     });
-    this._powerUps.push({id: "silence", description: "Loream ekio wo wdpm dpon dp w pad dp 20 scoendo. definitelt. ou heaj."});
   }
 
   get powerUps() {
     return this._powerUps;
+  }
+
+  get canUse() {
+    return this._isRoundGoingOn
+      && this._timeLeft > config.POWER_UP_TIME_LEFT_LIMIT
+      && this.auth.loginName != this.players.drawing
   }
 
   public isActive(powerUp: string): boolean {
@@ -48,7 +69,7 @@ export class PowerUpsService {
   }
 
   public isBlurred(): boolean {
-    return this.isActive(config.POWER_UPS.blackout.id)
+    return this.isActive(config.POWER_UPS.blur.id)
   }
 
   public isSilenced(): boolean {
