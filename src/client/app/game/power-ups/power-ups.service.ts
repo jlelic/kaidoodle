@@ -32,7 +32,11 @@ export class PowerUpsService {
         if(data.enabled){
           this._powerUps.push({...config.POWER_UPS[data.powerUp]});
         } else {
-          const index = this._powerUps.indexOf(({ id }) => id == data.powerUp);
+          const index = this._powerUps.findIndex(({ id }) => id == data.powerUp);
+          if(index < 0) {
+            console.error(`Cannot find ability ${data.powerUp} to remove!`);
+            return;
+          }
           this._powerUps.splice(index, 1);
         }
         break;

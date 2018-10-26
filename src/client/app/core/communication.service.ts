@@ -63,7 +63,7 @@ export class CommunicationService {
     });
 
     this.socket.on("*", (type, data) => {
-      console.log(type, data);
+      // console.log(type, data);
       this._incomingMessages.next({ type, data });
     });
   }
