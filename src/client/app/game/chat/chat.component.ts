@@ -6,6 +6,7 @@ import { CommunicationService } from '../../core/communication.service';
 import { SoundsService } from '../../core/sounds.service';
 
 import { ChatService } from '../../core/chat/chat.service';
+import { PowerUpsService } from '../power-ups/power-ups.service';
 
 
 @Component({
@@ -24,6 +25,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   constructor(private communication: CommunicationService,
               private service: ChatService,
               private fb: FormBuilder,
+              public powerUps: PowerUpsService,
               private sounds: SoundsService) {
     this.messageSubscription = this.service.messageAdded.subscribe(data => {
       const el = this.chatHistoryElement.nativeElement;

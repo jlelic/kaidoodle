@@ -15,6 +15,7 @@ import { PlayersService } from '../core/players.service';
 import { SoundsService } from '../core/sounds.service';
 import { DiscordService } from '../core/discord/discord.service';
 import { ChatService } from '../core/chat/chat.service';
+import { PowerUpsService } from './power-ups/power-ups.service';
 
 @Component({
   selector: 'app-game',
@@ -57,6 +58,7 @@ export class GameComponent implements OnInit, OnDestroy {
               private communication: CommunicationService,
               private discord: DiscordService,
               private players: PlayersService,
+              public powerUps: PowerUpsService,
               private sounds: SoundsService) {
   }
 

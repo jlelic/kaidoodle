@@ -4,7 +4,8 @@
       {{name}}
       <span *ngIf="drawingPlayerName && isPlaying">| {{drawingPlayerName}} is drawing </span>
       <span *ngIf="round">| Round: {{round}}/3 </span>
-      <span *ngIf="word">| Word: <span id="word"><strong>{{word}}</strong></span> </span>
+      <span *ngIf="word && !powerUps.isHidden()">| Word: <span id="word"><strong>{{word}}</strong></span> </span>
+      <span *ngIf="word && powerUps.isHidden()">| T̛̘̥̜̜̼H͉̪̫̟̫̹̯Ę̥͈͓̥͡ ҉̷̲̦͍͈̺̦͔W̧̼O͔̝̭̟̬̰̟̘͡R̮̹͔͕͈̪̖̣D̤̫͔͕͍͙̣ ̧͔̘̘̞̭͍͔͠ͅḨ̹̭͎̖̭̲̀ͅA̷̵̝̮̩͝S̰͓͢ ̝̻͓͍̬B̴̼̯͠E͉̭̤̬̗̜̩͖͡E̳̪͈̦͖Ń̼̙̳̞͔̘͉̺̞̀͟ ̸̧̳̮͍̰̮̣̮̤H̸͠͏̣̻̪̮̹̬̬I҉̷̩̜̜̤̩̟D҉̷̡͍̜̝̳̥͕̘̼D͓E̛͏̤͉͉͍͉̯͖Ǹ̫̘̮͔̫̪͍</span>
       <span>| Time: {{time}} s</span>
     </h3>
   </div>
@@ -15,7 +16,11 @@
 
     <span>
       <span id="canvasContainer">
-        <canvas id="gameCanvas" #canvas></canvas>
+        <span class="blur-overlay" [ngClass]="{'blur-overlay-active': powerUps.isBlurred()}">
+          <canvas id="gameCanvas" #canvas></canvas>
+        </span>
+        <span class="blackout-overlay" [ngClass]="{'blackout-overlay-active': powerUps.isBlackout()}">
+        </span>
         <span class="results" *ngIf="roundResults">
           <span>
             <strong>{{drawingPlayerName}}</strong> was drawing <strong>{{word}}</strong>
@@ -58,20 +63,23 @@
   <button id="shareToDiscord" (click)="shareImage()" mat-button><img class="toolIcon" src="assets/icons/discord.png"> SHARE</button>
 </div>
 
-<div *ngIf="canDraw" id="toolsContainer">
+<!--<div *ngIf="canDraw" class="tools-container">-->
 
-  <toolbar [(tool)]="tool"></toolbar>
+  <!--<toolbar [(tool)]="tool"></toolbar>-->
 
-  <color-picker (colorSelected)="onColorSelected($event)"></color-picker>
+  <!--<color-picker (colorSelected)="onColorSelected($event)"></color-picker>-->
 
-  <thickness-picker (thicknessSelected)="onThicknessSelected($event)"></thickness-picker>
+  <!--<thickness-picker (thicknessSelected)="onThicknessSelected($event)"></thickness-picker>-->
 
-  <div class="toolGroup">
-    <button (click)="undo()" mat-button>
-      <img class="toolIcon" src="assets/icons/tools/undo.png">
-    </button>
-    <button (click)="resetDrawing()" mat-button>
-      <img class="toolIcon" src="assets/icons/tools/clear.png">
-    </button>
-  </div>
+  <!--<div class="toolGroup">-->
+    <!--<button (click)="undo()" mat-button>-->
+      <!--<img class="toolIcon" src="assets/icons/tools/undo.png">-->
+    <!--</button>-->
+    <!--<button (click)="resetDrawing()" mat-button>-->
+      <!--<img class="toolIcon" src="assets/icons/tools/clear.png">-->
+    <!--</button>-->
+  <!--</div>-->
+<!--</div>-->
+<div *ngIf="canDraw" class="tools-container">
+  <power-ups></power-ups>
 </div>

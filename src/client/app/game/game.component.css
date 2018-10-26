@@ -25,6 +25,40 @@
   padding-top: 20px;
 }
 
+.blur-overlay {
+  background: rgba(229, 229, 229, 0);
+  -webkit-transition: -webkit-filter 3s ease-out;
+  -moz-transition: -moz-filter 3s ease-out;
+  -o-transition: -o-filter 3s ease-out;
+  transition: filter 3s ease-out;
+}
+
+.blur-overlay-active {
+  -webkit-filter: blur(20px);
+  -moz-filter: blur(20px);
+  -o-filter: blur(20px);
+  -ms-filter: blur(20px);
+  filter: blur(20px);
+}
+
+.blackout-overlay {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  background-color: rgba(0, 0, 0, 0);
+  width: 100%;
+  height: calc(100% - 7px);
+
+  -webkit-transition: background-color 1.5s ease-out;
+  -moz-transition: background-color 1.5s ease-out;
+  -o-transition: background-color 1.5s ease-out;
+  transition: background-color 1.5s ease-out;
+}
+
+.blackout-overlay-active{
+  background-color: rgb(0,0,0);
+}
+
 .results > span {
   padding: 40px;
 }
@@ -70,7 +104,7 @@
   font-size: 1.5em;
 }
 
-#toolsContainer {
+.tools-container {
   margin: auto auto;
   display: flex;
   flex-flow: row;

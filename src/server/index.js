@@ -20,13 +20,22 @@ const GameOverMessage = require('../shared/messages/game-over-message');
 const ChatMessage = require('../shared/messages/chat-message');
 const StartRoundMessage = require('../shared/messages/start-round-message');
 const EndRoundMessage = require('../shared/messages/end-round-message');
+const PowerUpEnabledMessage = require('../shared/messages/power-up-enabled-message');
+const PowerUpTriggerMessage = require('../shared/messages/power-up-trigger-message');
 const PlayerMessage = require('../shared/messages/player-message');
 const PlayerDisconnectedMessage = require('../shared/messages/player-disconnected-message');
 const TimerMessage = require('../shared/messages/timer-message');
 const WordMessage = require('../shared/messages/word-message');
 const WordChoicesMessage = require('../shared/messages/word-choices-message');
 
-const incomingMessages = [HandshakeMessage, DrawMessage, ChatMessage, WordMessage, 'disconnect'];
+const incomingMessages = [
+  HandshakeMessage,
+  DrawMessage,
+  ChatMessage,
+  PowerUpTriggerMessage,
+  WordMessage,
+  'disconnect'
+];
 
 const PORT = process.env.PORT || 3000;
 const DATABASE_URI = process.env.MONGODB_URI || 'mongodb://localhost/my_database';
@@ -63,6 +72,8 @@ const MAX_ROUNDS = 3;
 const players = {};
 const drawHistory = [];
 const chatHistory = [];
+const tempIntervals = [];
+
 
 let gameState = STATE_IDLE;
 let drawingPlayerName = '';
@@ -304,9 +315,10 @@ const checkEveryoneGuessed = () => {
 
 const checkWordHintAvailable = (time) => {
   const maxHints = Math.ceil(wordCharLength / 3);
-  if (time <= TIME_ROUND_HINT_START * (maxHints - hintsShown.size) / maxHints)
+  if (time <= TIME_ROUND_HINT_START * (maxHints - hintsShown.size) / maxHints) {
     wordHint = generateWordHint(true);
-  players[drawingPlayerName].socket.broadcast.emit(WordMessage.type, new WordMessage(wordHint).getPayload());
+    players[drawingPlayerName].socket.broadcast.emit(WordMessage.type, new WordMessage(wordHint).getPayload());
+  }
 };
 
 const updatePlayerScoreInDb = (login) => {
@@ -473,6 +485,20 @@ const wsHandlers = {
     }
     chatHistory.push(data)
   },
+  [PowerUpTriggerMessage.type]: (socket, data, playerName) => {
+    socket.broadcast.emit(PowerUpTriggerMessage.type, new PowerUpTriggerMessage(data.powerUp, true, playerName).getPayload());
+    socket.emit(PowerUpEnabledMessage.type, new PowerUpEnabledMessage(data.powerUp, false).getPayload());
+    const powerUpInterval = startTimer(
+      (elapsedTime) => {
+        remainingTime = 10 - elapsedTime;
+        return remainingTime <= 0;
+      },
+      () => {
+        socket.broadcast.emit(PowerUpTriggerMessage.type, new PowerUpTriggerMessage(data.powerUp, false, playerName).getPayload());
+      }
+    );
+    tempIntervals.push(powerUpInterval);
+  },
   [WordMessage.type]: (socket, data, playerName) => {
     if (playerName != drawingPlayerName || gameState != STATE_CHOOSING_WORD) {
       return;
@@ -488,7 +514,7 @@ io.on('connection', (socket) => {
   console.log('New websocket connection.');
   incomingMessages.forEach(msg => {
     socket.on(msg.type, data => {
-      // console.log(`${msg.type}: ${JSON.stringify(data)}`);
+      console.log(`${msg.type}: ${JSON.stringify(data)}`);
       const handler = wsHandlers[msg.type];
       if (!handler) {
         console.warn(`No websocket handler for ${msg.type} message type!`);
