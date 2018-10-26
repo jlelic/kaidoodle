@@ -52,6 +52,7 @@ const STATE_PLAYING = 'PLAYING';
 const STATE_COOLDOWN = 'COOLDOWN';
 const STATE_CHOOSING_WORD = 'CHOOSING_WORD';
 
+const COLOR_TEXT_ERROR = '#ff0000';
 const COLOR_TEXT_POWER_UP = '#9300d6';
 
 const players = {};
@@ -90,6 +91,7 @@ const startGame = () => {
 
   playerNames.forEach(name => {
     players[name].score = 0;
+    players[name].powerUps = [];
     sendToAllPlayers(new PlayerMessage(name, players[name]));
   });
   sendChatMessageToAllPlayers('Starting new game');
@@ -377,10 +379,11 @@ const maybeGiftPowerUp = () => {
   Object.keys(players).forEach(name => {
     if(players[name].score < lowestScore) {
       lastPlayerName = name;
+      lowestScore = players[name].score;
     }
   });
 
-  if(!lastPlayerName || lastPlayerName.powerUps >= config.MAX_POWER_UPS) {
+  if(!lastPlayerName || players[lastPlayerName].powerUps.length >= config.MAX_POWER_UPS) {
     return;
   }
 
@@ -520,15 +523,28 @@ const wsHandlers = {
       }
     });
 
+    socket.emit(PowerUpEnabledMessage.type, new PowerUpEnabledMessage(data.powerUp, false).getPayload());
+
     if(!canCast){
       console.error(`${playerName} cannot use power-up ${powerUp.id}`);
+      players[playerName].socket.emit(ChatMessage.type,
+        new ChatMessage(
+          config.SERVER_CHAT_NAME,
+          `Cannot use ${powerUp.name}!`,
+          COLOR_TEXT_ERROR
+        ).getPayload());
       return;
     }
 
     players[playerName].powerUps.splice(powerUpIndex, 1);
 
+    players[playerName].socket.emit(ChatMessage.type, new ChatMessage(
+      config.SERVER_CHAT_NAME,
+      `${powerUp.name} activated!`,
+      COLOR_TEXT_POWER_UP
+    ).getPayload());
+
     socket.broadcast.emit(PowerUpTriggerMessage.type, new PowerUpTriggerMessage(data.powerUp, true, playerName).getPayload());
-    socket.emit(PowerUpEnabledMessage.type, new PowerUpEnabledMessage(data.powerUp, false).getPayload());
     const chatMsg = new ChatMessage(config.SERVER_CHAT_NAME, powerUp.message, COLOR_TEXT_POWER_UP);
     Object.keys(players).forEach(pName => {
       if(pName === drawingPlayerName || pName === playerName) {

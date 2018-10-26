@@ -44,7 +44,7 @@ export class PowerUpsService {
         break;
       case EndRoundMessage.type:
         this._isRoundGoingOn = false;
-        this.reset();
+        this._effects = [];
         break;
       case TimerMessage.type:
         this._timeLeft = data.time;
@@ -84,7 +84,7 @@ export class PowerUpsService {
   }
 
   public reset() {
-    this._effects = [];
+    this._powerUps = [];
   }
 
   public use(powerUp: string) {

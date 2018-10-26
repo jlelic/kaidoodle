@@ -1,8 +1,8 @@
 <div *ngIf="service.canUse" id="toolbarContainer" class="toolGroup">
-  <span *ngFor="let p of powerUps">
-    <button mat-button (click)="use(p.id)" [title]="p.description">
-      {{p.id}}
-      <!--<img class="toolIcon" [src]="'assets/icons/tools/'+t+'.png'">-->
+  <span *ngFor="let powerUp of powerUps">
+    <button mat-button (click)="use(powerUp.id)" [title]="powerUp.description">
+      <img class="abilityIcon" [src]="'assets/icons/abilities/'+powerUp.id+'.png'">
+      {{powerUp.name}}
     </button>
   </span>
 </div>
