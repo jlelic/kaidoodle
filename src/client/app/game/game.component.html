@@ -16,10 +16,15 @@
 
     <span>
       <span id="canvasContainer">
-        <span class="blur-overlay" [ngClass]="{'blur-overlay-active': powerUps.isBlurred()}">
+        <span class="filterOverlay" [ngClass]='{
+          blurOverlay: powerUps.isBlurred(),
+          grayscaleOverlay: powerUps.isGray(),
+          hueOverlayEven: powerUps.isRainbow() && (time/3 % 2) <  1,
+          hueOverlayOdd: powerUps.isRainbow() && (time/3 % 2) >=  1
+        }'>
           <canvas id="gameCanvas" #canvas></canvas>
         </span>
-        <span class="blackout-overlay" [ngClass]="{'blackout-overlay-active': powerUps.isBlackout()}">
+        <span class="blackoutOverlay" [ngClass]="{'blackout-overlay-active': powerUps.isBlackout()}">
         </span>
         <span class="results" *ngIf="roundResults">
           <span>

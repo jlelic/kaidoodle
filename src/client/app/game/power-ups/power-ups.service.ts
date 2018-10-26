@@ -88,6 +88,14 @@ export class PowerUpsService {
     return this.isActive(config.POWER_UPS.blur.id)
   }
 
+  public isGray(): boolean {
+    return this.isActive(config.POWER_UPS.gray.id)
+  }
+
+  public isRainbow(): boolean {
+    return this.isActive(config.POWER_UPS.rainbow.id)
+  }
+
   public isSilenced(): boolean {
     return this.isActive(config.POWER_UPS.silence.id);
   }

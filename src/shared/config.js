@@ -48,6 +48,18 @@ const powerUps = {
     duration: 200,
     description: "Hide the word hint for all other guessing players for the rest of the round.",
     message: "How many letters was it again? 🌫😈"
+  },
+  rainbow: {
+    name: "Rainbow",
+    duration: 200,
+    description: "Continuously shift colors of the drawing for other guessing players for the rest of the round.",
+    message: "Taste the rainbow 🌈👅"
+  },
+  gray: {
+    name: "50 Shades of gray",
+    duration: 200,
+    description: "Make the drawing black & white for other guessing players for the rest of the round.",
+    message: "Welcome to the 19th century 📽🎞"
   }
 };
 Object.keys(powerUps).forEach(id => powerUps[id].id = id);
