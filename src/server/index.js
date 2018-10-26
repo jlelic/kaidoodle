@@ -70,6 +70,9 @@ const SCORE_TIME_MAXIMUM = 30;
 const SCORE_BASE = 10;
 
 const MAX_ROUNDS = 3;
+const MAX_POWER_UPS = 3;
+
+const COLOR_TEXT_POWER_UP = '#9300d6';
 
 const players = {};
 const drawHistory = [];
@@ -286,6 +289,8 @@ const endRound = () => {
     colorString.to.hex([200 - 100 * ratioGuessed, 100 + 100 * ratioGuessed, 0])
   );
 
+  maybeGiftPowerUp();
+
   drawingPlayerName = null;
   sendToAllPlayers(new EndRoundMessage(word, roundScores));
   clearInterval(timerUpdateInterval);
@@ -382,6 +387,29 @@ const generateWordHint = (addHint = false) => {
   return result;
 };
 
+const maybeGiftPowerUp = () => {
+  if(Math.random() < 0.5) {
+    return;
+  }
+  let lowestScore = 900000;
+  let lastPlayerName = null;
+  Object.keys(players).forEach(name => {
+    if(players[name].score < lowestScore) {
+      lastPlayerName = name;
+    }
+  });
+
+  if(!lastPlayerName || lastPlayerName.powerUps >= MAX_POWER_UPS) {
+    return;
+  }
+
+  const powerUpList = Object.keys(config.POWER_UPS);
+  const powerUpToGift = powerUpList[Math.floor(Math.random()*powerUpList.length)];
+
+  players[lastPlayerName].socket.emit(PowerUpEnabledMessage.type, new PowerUpEnabledMessage(powerUpToGift).getPayload());
+  console.log(`Player ${lastPlayerName} received power-up ${powerUpToGift}`);
+};
+
 const wsHandlers = {
   [HandshakeMessage.type]: (socket, data) => {
     const { token } = data;
@@ -407,7 +435,8 @@ const wsHandlers = {
           players[newPlayerName].socket.disconnect();
         }
 
-        players[newPlayerName] = { socket, score, guessed: false };
+        // TODO: store power ups and load on reconnects
+        players[newPlayerName] = { socket, score, guessed: false, powerUps: [] };
 
         const playerNames = Object.keys(players);
 
@@ -490,7 +519,7 @@ const wsHandlers = {
   [PowerUpTriggerMessage.type]: (socket, data, playerName) => {
     socket.broadcast.emit(PowerUpTriggerMessage.type, new PowerUpTriggerMessage(data.powerUp, true, playerName).getPayload());
     socket.emit(PowerUpEnabledMessage.type, new PowerUpEnabledMessage(data.powerUp, false).getPayload());
-    const chatMsg = new ChatMessage(SERVER_NAME, config.POWER_UPS[data.powerUp].message, '#9300d6');
+    const chatMsg = new ChatMessage(SERVER_NAME, config.POWER_UPS[data.powerUp].message, COLOR_TEXT_POWER_UP);
     socket.broadcast.emit(ChatMessage.type, chatMsg.getPayload());
     const duration = config.POWER_UPS[data.powerUp].duration;
     const powerUpInterval = startTimer(

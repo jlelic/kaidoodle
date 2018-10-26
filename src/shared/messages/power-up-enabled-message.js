@@ -1,11 +1,11 @@
 class Message {
 
-  constructor(powerUp, enabled) {
+  constructor(powerUp, enabled = true) {
     this.payload = { powerUp, enabled};
   }
 
   static get type() {
-    return 'power-up-powerUps';
+    return 'power-up-enabled';
   }
 
   getType() {

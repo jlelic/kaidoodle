@@ -19,7 +19,8 @@ export class PowerUpsService {
         if(data.enabled){
           this._powerUps.push({...config.POWER_UPS[data.powerUp]});
         } else {
-          this._powerUps = this._powerUps.filter(({id}) => id != data.powerUp);
+          const index = this._powerUps.indexOf(({id}) => id == data.powerUp);
+          this._powerUps.splice(index, 1);
         }
       } else if (type === PowerUpTriggerMessage.type) {
         const powerUp = data.powerUp;
