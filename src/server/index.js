@@ -404,6 +404,9 @@ const maybeGiftPowerUp = () => {
 };
 
 const updateWordStats = () => {
+  if(Object.keys(players).length < 4) {
+    return;
+  }
   WordModel.findOne({ word })
     .then(w => {
       w.played++;

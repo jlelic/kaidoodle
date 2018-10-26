@@ -20,7 +20,7 @@ Config.SCORE_BASE = 10;
 Config.MAX_ROUNDS = 3;
 
 Config.MAX_POWER_UPS = 3;
-Config.POWER_UP_CHANCE = 1;
+Config.POWER_UP_CHANCE = 0.5;
 Config.POWER_UP_TIME_LEFT_LIMIT = 20;
 
 const powerUps = {
