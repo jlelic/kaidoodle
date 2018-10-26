@@ -7,7 +7,8 @@ const WordSchema = new mongoose.Schema({
   word: { type: String, required: true, index: { unique: true } },
   addedBy: { type: String, required: true },
   deletedBy: { type: String },
-  deleted: { type: Boolean, required: true, default: false }
+  deleted: { type: Boolean, required: true, default: false },
+  played: { type: Number, default: 0}
 });
 
 WordSchema.plugin(mongooseRandom);

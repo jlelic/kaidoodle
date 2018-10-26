@@ -35,7 +35,7 @@ export class GameComponent implements OnInit, OnDestroy {
   prevX: number = null;
   prevY: number = null;
   word = '';
-  words: string[] = null;
+  words = null;
   time = 0;
   round = 0;
 

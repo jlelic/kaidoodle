@@ -161,16 +161,16 @@ const prepareRound = () => {
     return;
   }
 
-  WordModel.findRandom({ $or: [{ deleted: false }, { deleted: null }] }, {}, { limit: 1 + Math.round(Math.random() * 8) }, function(err, randomWords) { // dooes't work with promises :(
+  WordModel.findRandom({ $or: [{ deleted: false }, { deleted: null }] }, {}, { limit: 1 + Math.round(Math.random() * 8) }, function(err, randomWords) { // does't work with promises :(
     if (err) {
       endGame();
       sendChatMessageToAllPlayers('Error occured');
       console.log(err);
       return;
     }
-    const words = randomWords.map(({ word }) => word);
-    console.log(`Preparing round, drawing ${drawingPlayerName}, choices: ${words.join(', ')}`);
-    players[drawingPlayerName].socket.emit(WordChoicesMessage.type, new WordChoicesMessage(words).getPayload());
+    const wordChoices = randomWords.map(({ word, played, addedBy }) => ({word, played, addedBy}));
+    console.log(`Preparing round, drawing ${drawingPlayerName}, choices: ${wordChoices.map(({word}) => word).join(', ')}`);
+    players[drawingPlayerName].socket.emit(WordChoicesMessage.type, new WordChoicesMessage(wordChoices).getPayload());
     sendChatMessageToAllPlayers(`${drawingPlayerName} is choosing a word`);
 
     gameState = STATE_CHOOSING_WORD;
@@ -182,7 +182,7 @@ const prepareRound = () => {
         return remainingTime <= 0;
       },
       () => {
-        word = words[0];
+        word = wordChoices[0].word;
         startRound();
       }
     );
@@ -270,6 +270,7 @@ const endRound = () => {
     `The word was ${word}. ${playersGuessed}/${playersGuessing} guessed. ${drawingPlayerName} receives ${Math.round(ratioGuessed*100)}% of ${winnerScore} = ${drawingPlayerScore}`,
     colorString.to.hex([200 - 100 * ratioGuessed, 100 + 100 * ratioGuessed, 0])
   );
+  updateWordStats();
 
   tempIntervals.forEach(clearInterval);
   maybeGiftPowerUp();
@@ -400,6 +401,15 @@ const maybeGiftPowerUp = () => {
     ).getPayload()
   );
   console.log(`Player ${lastPlayerName} received power-up ${powerUpToGift}`);
+};
+
+const updateWordStats = () => {
+  WordModel.findOne({ word })
+    .then(w => {
+      w.played++;
+      return w.save();
+    })
+    .then((w) => console.log(`Word ${w.word} has been played ${w.played} times`));
 };
 
 const wsHandlers = {

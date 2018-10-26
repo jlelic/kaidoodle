@@ -88,6 +88,8 @@
 }
 
 .wordChoice button {
+  font-size: 20px;
+  font-weight: bold;
   min-height: 40px;
   min-width: 120px;
   margin: 20px;
@@ -95,6 +97,13 @@
 
 .wordChoice a{
   font-size: 13px;
+  display: block;
+  text-align: center;
+}
+
+.wordStats {
+  padding-bottom: 5px;
+  font-size: 14px;
   display: block;
   text-align: center;
 }

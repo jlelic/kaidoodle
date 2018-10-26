@@ -47,10 +47,12 @@
           </span>
           <span id="wordChoicesContainer">
             <div class="wordChoice" *ngFor="let wordChoice of words">
-              <button mat-button (click)="onWordChoice(wordChoice)">
-                {{wordChoice}}
+              <button mat-button (click)="onWordChoice(wordChoice.word)">
+                {{wordChoice.word}}
               </button>
-              <a [href]="'https://www.google.cz/search?q='+wordChoice" target="_blank">Google it</a>
+              <span class="wordStats">Added by {{wordChoice.addedBy}}</span>
+              <span class="wordStats">Played {{wordChoice.played}} times</span>
+              <a [href]="'https://www.google.cz/search?q='+wordChoice.word" target="_blank">Google it</a>
             </div>
           </span>
         </span>
