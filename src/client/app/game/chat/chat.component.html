@@ -6,7 +6,7 @@
     <span *ngIf="message.system" [innerHTML]="message.html" target="_blank"></span>
   </span>
   </div>
-  <form *ngIf="!powerUps.isMuted()" [formGroup]="form" (submit)="onSubmit($event)">
+  <form *ngIf="!powerUps.isSilenced()" [formGroup]="form" (submit)="onSubmit($event)">
     <input id="chatInput" type="text" formControlName="input" placeholder="Type your guess here" autofocus required #chatInput/>
     <button id="chatSendButton" (click)="onSubmit($event)">Send</button>
   </form>

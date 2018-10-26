@@ -14,6 +14,8 @@ const DiscordBot = require('./discord-bot');
 const UserModel = require('./models/user');
 const WordModel = require('./models/word');
 
+const config = require('../shared/config');
+
 const HandshakeMessage = require('../shared/messages/handshake-message');
 const DrawMessage = require('../shared/messages/draw-message');
 const GameOverMessage = require('../shared/messages/game-over-message');
@@ -488,11 +490,11 @@ const wsHandlers = {
   [PowerUpTriggerMessage.type]: (socket, data, playerName) => {
     socket.broadcast.emit(PowerUpTriggerMessage.type, new PowerUpTriggerMessage(data.powerUp, true, playerName).getPayload());
     socket.emit(PowerUpEnabledMessage.type, new PowerUpEnabledMessage(data.powerUp, false).getPayload());
+    const chatMsg = new ChatMessage(SERVER_NAME, config.POWER_UPS[data.powerUp].message, '#9300d6');
+    socket.broadcast.emit(ChatMessage.type, chatMsg.getPayload());
+    const duration = config.POWER_UPS[data.powerUp].duration;
     const powerUpInterval = startTimer(
-      (elapsedTime) => {
-        remainingTime = 10 - elapsedTime;
-        return remainingTime <= 0;
-      },
+      (elapsedTime) => duration < elapsedTime,
       () => {
         socket.broadcast.emit(PowerUpTriggerMessage.type, new PowerUpTriggerMessage(data.powerUp, false, playerName).getPayload());
       }

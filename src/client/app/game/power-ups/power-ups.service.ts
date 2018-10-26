@@ -19,7 +19,7 @@ export class PowerUpsService {
         if(data.enabled){
           this._powerUps.push({...config.POWER_UPS[data.powerUp]});
         } else {
-          this._powerUps = this._powerUps.filter(({id}) => id != data.id);
+          this._powerUps = this._powerUps.filter(({id}) => id != data.powerUp);
         }
       } else if (type === PowerUpTriggerMessage.type) {
         const powerUp = data.powerUp;
@@ -31,7 +31,7 @@ export class PowerUpsService {
         this.reset();
       }
     });
-    this._powerUps.push({id: "mute"});
+    this._powerUps.push({id: "silence", description: "Loream ekio wo wdpm dpon dp w pad dp 20 scoendo. definitelt. ou heaj."});
   }
 
   get powerUps() {
@@ -50,8 +50,8 @@ export class PowerUpsService {
     return this.isActive(config.POWER_UPS.blackout.id)
   }
 
-  public isMuted(): boolean {
-    return this.isActive(config.POWER_UPS.mute.id);
+  public isSilenced(): boolean {
+    return this.isActive(config.POWER_UPS.silence.id);
   }
 
   public isHidden(): boolean {

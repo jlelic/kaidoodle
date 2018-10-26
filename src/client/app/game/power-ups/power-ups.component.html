@@ -1,6 +1,6 @@
 <div id="toolbarContainer" class="toolGroup">
   <span *ngFor="let p of powerUps">
-    <button mat-button (click)="use(p.id)">
+    <button mat-button (click)="use(p.id)" [title]="p.description">
       {{p.id}}
       <!--<img class="toolIcon" [src]="'assets/icons/tools/'+t+'.png'">-->
     </button>
