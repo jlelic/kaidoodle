@@ -26,6 +26,11 @@ export class SoundsService {
     window.speechSynthesis.speak(new SpeechSynthesisUtterance('Choose a word!'));
   }
 
+  playAbilitySound(ability: string) {
+    this.audio.src = `assets/sounds/abilities/${ability}.wav`;
+    this.audio.play();
+  }
+
   private playRandomSound(soundNames:string[]) {
     this.audio.src = `assets/sounds/${soundNames[Math.floor(Math.random()*soundNames.length)]}.wav`;
     this.audio.play();

@@ -1,4 +1,4 @@
-<div id="chatWindow">
+<div id="chatWindow" [ngClass]="{silenced: powerUps.isSilenced()}">
   <div id="chatHeader">Chat:</div>
   <div id="chatHistory" #chatHistory>
   <span class="chatMessage" *ngFor="let message of messages" [ngStyle]="{'color': message.color}">

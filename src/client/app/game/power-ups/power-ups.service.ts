@@ -9,6 +9,7 @@ import * as TimerMessage from '../../../../shared/messages/timer-message';
 import * as config from '../../../../shared/config';
 import { PlayersService } from '../../core/players.service';
 import { AuthService } from '../../core/auth/auth.service';
+import { SoundsService } from '../../core/sounds.service';
 
 @Injectable()
 export class PowerUpsService {
@@ -19,7 +20,12 @@ export class PowerUpsService {
   private _timeLeft = 0;
 
 
-  constructor(private auth: AuthService, private communication: CommunicationService, private players: PlayersService) {
+  constructor(
+    private auth: AuthService,
+    private communication: CommunicationService,
+    private sounds: SoundsService,
+    private players: PlayersService
+  ) {
     this.communication.incomingMessages.subscribe(({ type, data }) => {
       switch (type) {
        case PowerUpEnabledMessage.type:
@@ -37,6 +43,9 @@ export class PowerUpsService {
         const powerUp = data.powerUp;
         this._effects[powerUp] = this._effects[powerUp] || 0;
         const change = data.active ? 1 : -1;
+        if(change>0) {
+          this.sounds.playAbilitySound(data.powerUp);
+        }
         this._effects[powerUp] += change;
         break;
       case StartRoundMessage.type:

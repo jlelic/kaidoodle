@@ -38,3 +38,7 @@
   display: inherit;
   padding: 4px;
 }
+
+.silenced {
+  background-color: darkgray !important;
+}
