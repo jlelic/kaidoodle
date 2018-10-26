@@ -31,6 +31,9 @@ export class PowerUpsService {
         }
         break;
       case PowerUpTriggerMessage.type:
+        if(this.auth.loginName == this.players.drawing) {
+          return;
+        }
         const powerUp = data.powerUp;
         this._effects[powerUp] = this._effects[powerUp] || 0;
         const change = data.active ? 1 : -1;
@@ -80,7 +83,7 @@ export class PowerUpsService {
     return this.isActive(config.POWER_UPS.hide.id);
   }
 
-  private reset() {
+  public reset() {
     this._effects = [];
   }
 

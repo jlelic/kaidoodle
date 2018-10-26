@@ -21,6 +21,7 @@ Config.MAX_ROUNDS = 3;
 
 Config.MAX_POWER_UPS = 3;
 Config.POWER_UP_CHANCE = 1;
+Config.POWER_UP_TIME_LEFT_LIMIT = 60;
 
 const powerUps = {
   blackout: {
@@ -51,6 +52,5 @@ const powerUps = {
 Object.keys(powerUps).forEach(id => powerUps[id].id = id);
 Config.POWER_UPS = powerUps;
 
-Config.POWER_UP_TIME_LEFT_LIMIT = 1;
 
 module.exports = Config;

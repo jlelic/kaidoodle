@@ -76,6 +76,7 @@ export class GameComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.communication.init();
+    this.powerUps.reset();
 
     this.kaiImage = new Image();
     this.kaiImage.src = 'assets/presets/kai.png';
@@ -134,6 +135,7 @@ export class GameComponent implements OnInit, OnDestroy {
           this.roundResults = null;
           break;
         case GameOverMessage.type:
+          this.powerUps.reset();
           this.gameResults = this.players.getplayersScoresAsCopy();
           this.words = null;
           this.roundResults = null;

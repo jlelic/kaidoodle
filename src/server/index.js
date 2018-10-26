@@ -387,6 +387,7 @@ const maybeGiftPowerUp = () => {
   const powerUpList = Object.keys(config.POWER_UPS);
   const powerUpToGift = powerUpList[Math.floor(Math.random()*powerUpList.length)];
 
+  players[lastPlayerName].powerUps.push(powerUpToGift);
   players[lastPlayerName].socket.emit(PowerUpEnabledMessage.type, new PowerUpEnabledMessage(powerUpToGift).getPayload());
   players[lastPlayerName].socket.emit(ChatMessage.type,
     new ChatMessage(
@@ -508,11 +509,34 @@ const wsHandlers = {
     chatHistory.push(data)
   },
   [PowerUpTriggerMessage.type]: (socket, data, playerName) => {
+    const powerUp = config.POWER_UPS[data.powerUp];
+
+    let canCast = false;
+    let powerUpIndex;
+    players[playerName].powerUps.forEach((playerPowerUp, i) => {
+      if(playerPowerUp === powerUp.id) {
+        canCast = true;
+        powerUpIndex = i;
+      }
+    });
+
+    if(!canCast){
+      console.error(`${playerName} cannot use power-up ${powerUp.id}`);
+      return;
+    }
+
+    players[playerName].powerUps.splice(powerUpIndex, 1);
+
     socket.broadcast.emit(PowerUpTriggerMessage.type, new PowerUpTriggerMessage(data.powerUp, true, playerName).getPayload());
     socket.emit(PowerUpEnabledMessage.type, new PowerUpEnabledMessage(data.powerUp, false).getPayload());
-    const chatMsg = new ChatMessage(config.SERVER_CHAT_NAME, config.POWER_UPS[data.powerUp].message, COLOR_TEXT_POWER_UP);
-    socket.broadcast.emit(ChatMessage.type, chatMsg.getPayload());
-    const duration = config.POWER_UPS[data.powerUp].duration;
+    const chatMsg = new ChatMessage(config.SERVER_CHAT_NAME, powerUp.message, COLOR_TEXT_POWER_UP);
+    Object.keys(players).forEach(pName => {
+      if(pName === drawingPlayerName || pName === playerName) {
+        return
+      }
+      players[pName].socket.emit(ChatMessage.type, chatMsg.getPayload());
+    });
+    const duration = powerUp.duration;
     const powerUpInterval = startTimer(
       (elapsedTime) => duration < elapsedTime,
       () => {
