@@ -24,7 +24,7 @@
         }'>
           <canvas id="gameCanvas" #canvas></canvas>
         </span>
-        <span class="blackoutOverlay" [ngClass]="{'blackout-overlay-active': powerUps.isBlackout()}">
+        <span class="blackoutOverlay" [ngClass]="{'blackoutOverlayActive': powerUps.isBlackout()}">
         </span>
         <span class="results" *ngIf="roundResults">
           <span>
