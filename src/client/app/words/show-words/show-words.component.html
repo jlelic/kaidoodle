@@ -20,6 +20,8 @@
   <div class="wordTableRow">
     <span class="wordTableCell">No.</span>
     <span class="wordTableCell">Word</span>
+    <span class="wordTableCell">Last seen</span>
+    <span class="wordTableCell">Last played</span>
     <span class="wordTableCell">Played</span>
     <span class="wordTableCell">Added by</span>
     <span class="wordTableCell">Deleted by</span>
@@ -30,6 +32,12 @@
     </span>
     <span class="wordTableCell" [ngClass]="{deletedWord: entry.deleted}">
       <a [href]="'https://www.google.cz/search?q='+entry.word" target="_blank">{{entry.word}}</a>
+    </span>
+    <span class="wordTableCell">
+      {{getTimeAgoString(entry.lastSeen)}}
+    </span>
+    <span class="wordTableCell">
+      {{getTimeAgoString(entry.lastPlayed)}}
     </span>
     <span class="wordTableCell">
       {{entry.played}}

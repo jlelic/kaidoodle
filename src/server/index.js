@@ -82,6 +82,7 @@ let gameId;
 const startGame = () => {
   roundsPlayed = 0;
   gameId = uuid();
+  roundScores = {};
   const playerNames = Object.keys(players);
 
   console.log(`Starting new game ${gameId}`);
@@ -162,17 +163,19 @@ const prepareRound = () => {
     return;
   }
 
-  WordModel.findRandom({ $or: [{ deleted: false }, { deleted: null }] }, {}, { limit: 1 + Math.round(Math.random() * 8) }, function(err, randomWords) { // does't work with promises :(
+  WordModel.findRandom({ $or: [{ deleted: false }, { deleted: null }] }, {}, { limit: 2 + Math.floor(Math.random() * 11) }, function(err, randomWords) { // does't work with promises :(
     if (err) {
       endGame();
-      sendChatMessageToAllPlayers('Error occured');
+      sendChatMessageToAllPlayers('Error occured when generating words. Please contact administrator.');
       console.log(err);
       return;
     }
-    const wordChoices = randomWords.map(({ word, played, addedBy }) => ({ word, played, addedBy }));
+    const wordChoices = randomWords;
     console.log(`Preparing round, drawing ${drawingPlayerName}, choices: ${wordChoices.map(({ word }) => word).join(', ')}`);
     players[drawingPlayerName].socket.emit(WordChoicesMessage.type, new WordChoicesMessage(wordChoices).getPayload());
     sendChatMessageToAllPlayers(`${drawingPlayerName} is choosing a word`);
+
+    wordChoices.forEach(seenWord => updateWordStats(seenWord.word, false));
 
     gameState = STATE_CHOOSING_WORD;
 
@@ -271,7 +274,7 @@ const endRound = () => {
     `The word was ${word}. ${playersGuessed}/${playersGuessing} guessed. ${drawingPlayerName} receives ${Math.round(ratioGuessed * 100)}% of ${winnerScore} = ${drawingPlayerScore}`,
     colorString.to.hex([200 - 100 * ratioGuessed, 100 + 100 * ratioGuessed, 0])
   );
-  updateWordStats();
+  updateWordStats(word, true);
 
   tempIntervals.forEach(clearInterval);
   doubleBonus.clear();
@@ -430,16 +433,19 @@ const resolveSelfAbility = (playerName, ability) => {
   }
 };
 
-const updateWordStats = () => {
-  if (Object.keys(players).length < 4) {
-    return;
-  }
-  WordModel.findOne({ word })
+const updateWordStats = (wordToUpdate, played) => {
+  WordModel.findOne({ word: wordToUpdate })
     .then(w => {
-      w.played++;
+      if (played) {
+        if (Object.keys(players).length < 4) {
+          w.played++;
+        }
+        w.lastPlayed = +new Date();
+      }
+      w.lastSeen = +new Date();
       return w.save();
     })
-    .then((w) => console.log(`Word ${w.word} has been played ${w.played} times`));
+    .then(() => {});
 };
 
 const wsHandlers = {
@@ -468,7 +474,12 @@ const wsHandlers = {
           players[newPlayerName].socket.disconnect();
         }
 
-        players[newPlayerName] = { socket, score, guessed: false, powerUps: abilities.split(config.STRING_ARRAY_DELIMITER).filter(x => x) };
+        players[newPlayerName] = {
+          socket,
+          score,
+          guessed: false,
+          powerUps: abilities.split(config.STRING_ARRAY_DELIMITER).filter(x => x)
+        };
 
         players[newPlayerName].powerUps.forEach(ability => {
           socket.emit(PowerUpEnabledMessage.type, new PowerUpEnabledMessage(ability, true, false).getPayload());

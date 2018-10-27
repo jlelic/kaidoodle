@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { WordsService } from '../words.service';
+import * as tg from 'time-ago'
 
 @Component({
   selector: 'app-show-words',
@@ -28,6 +29,13 @@ export class ShowWordsComponent implements OnInit {
   getPageLinks(): number[] {
     return this.pageNumDiffs.map(diff => Number(this.data.page) + diff)
       .filter(pageNum => pageNum > 0 && pageNum <= this.data.pages)
+  }
+
+  getTimeAgoString(timestamp: number): string {
+    if(!timestamp) {
+      return '';
+    }
+    return tg.ago(timestamp);
   }
 
   onDeleteClick(index: number) {

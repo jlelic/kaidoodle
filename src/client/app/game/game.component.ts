@@ -1,6 +1,7 @@
 import { Component, OnInit, ViewChild, ElementRef, OnDestroy } from '@angular/core';
 import { Subscription } from 'rxjs/Subscription';
 import * as colorString from 'color-string';
+import * as tg from 'time-ago'
 
 import * as DrawMessage from '../../../shared/messages/draw-message';
 import * as StartRoundMessage from '../../../shared/messages/start-round-message';
@@ -245,6 +246,13 @@ export class GameComponent implements OnInit, OnDestroy {
   clearCanvas() {
     this.context.fillStyle = 'white';
     this.context.fillRect(0, 0, this.width, this.height);
+  }
+
+  getTimeAgoString(timestamp: number): string {
+    if(!timestamp) {
+      return 'unknown';
+    }
+    return tg.ago(timestamp);
   }
 
   isDrawContinuous(data) {

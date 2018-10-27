@@ -75,7 +75,7 @@
 }
 
 .results > span {
-  padding: 40px;
+  padding: 10px;
 }
 
 .results li {
@@ -99,7 +99,7 @@
 
 .wordChoice {
   display: inline-block;
-  padding-bottom: 40px;
+  padding: 10px;
 }
 
 .wordChoice button {
@@ -118,9 +118,9 @@
 
 .wordStats {
   padding-bottom: 5px;
-  font-size: 14px;
+  font-size: 12px;
   display: block;
-  text-align: center;
+  text-align: left;
 }
 
 #word {

@@ -55,9 +55,11 @@
               <button mat-button (click)="onWordChoice(wordChoice.word)">
                 {{wordChoice.word}}
               </button>
-              <span class="wordStats">Added by {{wordChoice.addedBy}}</span>
-              <span class="wordStats">Played {{wordChoice.played}} times</span>
-              <a [href]="'https://www.google.cz/search?q='+wordChoice.word" target="_blank">Google it</a>
+              <span class="wordStats">Last seen: {{getTimeAgoString(wordChoice.lastSeen)}}</span>
+              <span class="wordStats">Last played: {{getTimeAgoString(wordChoice.lastPlayed)}}</span>
+              <span class="wordStats">Total played: {{wordChoice.played}} times</span>
+              <span class="wordStats">Added by: {{wordChoice.addedBy}}</span>
+              <!--<a [href]="'https://www.google.cz/search?q='+wordChoice.word" target="_blank">Google it</a>-->
             </div>
           </span>
         </span>
