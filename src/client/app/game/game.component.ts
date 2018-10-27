@@ -9,6 +9,7 @@ import * as GameOverMessage from '../../../shared/messages/game-over-message';
 import * as TimerMessage from '../../../shared/messages/timer-message';
 import * as WordMessage from '../../../shared/messages/word-message';
 import * as WordChoicesMessage from '../../../shared/messages/word-choices-message';
+import * as config from '../../../shared/config';
 
 import { CommunicationService } from '../core/communication.service';
 import { PlayersService } from '../core/players.service';
@@ -72,6 +73,10 @@ export class GameComponent implements OnInit, OnDestroy {
 
   get canDraw() {
     return !this.isPlaying || this.name == this.drawingPlayerName;
+  }
+
+  get maxRounds() {
+    return config.MAX_ROUNDS;
   }
 
   ngOnInit() {
