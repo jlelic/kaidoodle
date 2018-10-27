@@ -267,13 +267,10 @@ const endRound = () => {
   }
 
   let msg = `The word was ${word}. ${playersGuessed}/${playersGuessing} guessed. ${drawingPlayerName} receives ${Math.round(ratioGuessed * 100)}% of ${winnerScore} = ${drawingPlayerScore}`;
-  if (playersGuessed == 0) {
+  if (playersGuessed === 0) {
     msg = `The word was ${word}. No one guessed. ${drawingPlayerName} loses ${-config.SCORE_NO_CORRECT_GUESSES} points`;
   }
-  sendChatMessageToAllPlayers(
-    `The word was ${word}. ${playersGuessed}/${playersGuessing} guessed. ${drawingPlayerName} receives ${Math.round(ratioGuessed * 100)}% of ${winnerScore} = ${drawingPlayerScore}`,
-    colorString.to.hex([200 - 100 * ratioGuessed, 100 + 100 * ratioGuessed, 0])
-  );
+  sendChatMessageToAllPlayers(msg, colorString.to.hex([200 - 100 * ratioGuessed, 100 + 100 * ratioGuessed, 0]));
   updateWordStats(word, true);
 
   tempIntervals.forEach(clearInterval);
