@@ -126,7 +126,11 @@ export class GameComponent implements OnInit, OnDestroy {
           this.time = data.time;
           break;
         case WordMessage.type:
-          this.word = data.word;
+          if (this.powerUps.isRevealed()) {
+            this.word = this.word[0] + data.word.substring(1);
+          } else {
+            this.word = data.word;
+          }
           break;
         case WordChoicesMessage.type:
           this.sounds.playChooseWord();

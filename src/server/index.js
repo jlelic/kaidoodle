@@ -59,6 +59,7 @@ const players = {};
 const drawHistory = [];
 const chatHistory = [];
 const tempIntervals = [];
+const doubleBonus = new Set();
 
 
 let gameState = STATE_IDLE;
@@ -273,6 +274,7 @@ const endRound = () => {
   updateWordStats();
 
   tempIntervals.forEach(clearInterval);
+  doubleBonus.clear();
   grantAbility();
 
   drawingPlayerName = null;
@@ -408,6 +410,20 @@ const grantAbility = () => {
   console.log(`Player ${playerToReceive} received ability ${powerUpToGift}`);
 };
 
+const resolveSelfAbility = (playerName, ability) => {
+  const player = players[playerName];
+  switch (ability.id){
+    case config.POWER_UPS.reveal.id:
+      player.socket.emit(WordMessage.type, new WordMessage(word[0] + wordHint.substring(1)).getPayload());
+      break;
+    case config.POWER_UPS.double.id:
+      doubleBonus.add(playerName);
+      sendChatMessageToAllPlayers(`${playerName} will get double points if their next guess is correct!`, COLOR_TEXT_POWER_UP);
+      player.socket.broadcast.emit(PowerUpTriggerMessage.type, new PowerUpTriggerMessage(ability.id));
+      break;
+  }
+};
+
 const updateWordStats = () => {
   if (Object.keys(players).length < 4) {
     return;
@@ -492,11 +508,14 @@ const wsHandlers = {
     }
     data.sender = playerName;
     if (gameState == STATE_PLAYING && word && data.text && playerName != drawingPlayerName && data.text.toLowerCase() === word.toLowerCase()) {
-      const score = config.SCORE_BASE
+      let score = config.SCORE_BASE
         + Math.round(Math.min(config.SCORE_TIME_MAXIMUM, remainingTime * config.SCORE_TIME_MULTIPLIER))
         + scoreBonus
         + (winnerScore ? 0 : config.SCORE_BONUS_FIRST);
       winnerScore = winnerScore || score;
+      if(doubleBonus.has(playerName)) {
+        score *= 2;
+      }
       scoreBonus -= config.SCORE_BONUS_REDUCTION;
       roundScores[playerName] = score;
       players[playerName].score += score;
@@ -522,6 +541,10 @@ const wsHandlers = {
       } else if (lDistance == 2 && remainingTime <= config.TIME_ROUND_MINIMUM) {
         socket.emit(ChatMessage.type, new ChatMessage(config.SERVER_CHAT_NAME, `${data.text} is kinda close!`, '#5078cc').getPayload());
       }
+    }
+    if(doubleBonus.has(playerName)) {
+      sendChatMessageToAllPlayers(`${playerName} lost double bonus!`, COLOR_TEXT_POWER_UP);
+      doubleBonus.delete(playerName);
     }
     socket.broadcast.emit(ChatMessage.type, data);
     while (chatHistory.length >= 20) {
@@ -562,19 +585,29 @@ const wsHandlers = {
       COLOR_TEXT_POWER_UP
     ).getPayload());
 
-    socket.broadcast.emit(PowerUpTriggerMessage.type, new PowerUpTriggerMessage(data.powerUp, true, playerName).getPayload());
-    const chatMsg = new ChatMessage(config.SERVER_CHAT_NAME, powerUp.message, COLOR_TEXT_POWER_UP);
-    Object.keys(players).forEach(pName => {
-      if (pName === drawingPlayerName || pName === playerName) {
-        return
-      }
-      players[pName].socket.emit(ChatMessage.type, chatMsg.getPayload());
-    });
+    const emitter = powerUp.self ? socket : socket.broadcast;
+
+    if(powerUp.self) {
+      resolveSelfAbility(playerName, powerUp)
+    } else {
+      const chatMsg = new ChatMessage(config.SERVER_CHAT_NAME, powerUp.message, COLOR_TEXT_POWER_UP);
+      Object.keys(players).forEach(pName => {
+        if (pName === drawingPlayerName || pName === playerName) {
+          return
+        }
+        players[pName].socket.emit(ChatMessage.type, chatMsg.getPayload());
+      });
+    }
+
+    emitter.emit(PowerUpTriggerMessage.type, new PowerUpTriggerMessage(data.powerUp, true, playerName).getPayload());
+
     const duration = powerUp.duration;
     const powerUpInterval = startTimer(
       (elapsedTime) => duration < elapsedTime,
       () => {
-        socket.broadcast.emit(PowerUpTriggerMessage.type, new PowerUpTriggerMessage(data.powerUp, false, playerName).getPayload());
+        if(duration) {
+          emitter.emit(PowerUpTriggerMessage.type, new PowerUpTriggerMessage(data.powerUp, false, playerName).getPayload());
+        }
       }
     );
     tempIntervals.push(powerUpInterval);
