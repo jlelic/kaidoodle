@@ -259,7 +259,7 @@ const endRound = () => {
   roundScores[drawingPlayerName] = drawingPlayerScore;
   if (players[drawingPlayerName]) {
     players[drawingPlayerName].score += drawingPlayerScore;
-    updatePlayerScoreInDb(drawingPlayerName);
+    updatePlayerInDb(drawingPlayerName);
     sendToAllPlayers(new PlayerMessage(drawingPlayerName, players[drawingPlayerName]));
   }
 
@@ -314,9 +314,14 @@ const checkWordHintAvailable = (time) => {
   }
 };
 
-const updatePlayerScoreInDb = (login) => {
+const updatePlayerInDb = (login) => {
   UserModel.findOne({ login })
-    .update({ $set: { score: players[login].score } })
+    .update({
+      $set: {
+        score: players[login].score,
+        abilities: players[login].powerUps.join(config.STRING_ARRAY_DELIMITER)
+      }
+    })
     .then(() => {
     });
 };
@@ -407,12 +412,13 @@ const grantAbility = () => {
       COLOR_TEXT_POWER_UP
     ).getPayload()
   );
+  updatePlayerInDb(playerToReceive);
   console.log(`Player ${playerToReceive} received ability ${powerUpToGift}`);
 };
 
 const resolveSelfAbility = (playerName, ability) => {
   const player = players[playerName];
-  switch (ability.id){
+  switch (ability.id) {
     case config.POWER_UPS.reveal.id:
       player.socket.emit(WordMessage.type, new WordMessage(word[0] + wordHint.substring(1)).getPayload());
       break;
@@ -441,7 +447,7 @@ const wsHandlers = {
     const { token } = data;
     UserModel.findOne({ token })
       .then(user => {
-        let { login, score, lastGameId } = user;
+        let { login, score, abilities, lastGameId } = user;
         const newPlayerName = login;
         if (!newPlayerName) {
           console.error(`Unknown player token ${token}!`);
@@ -452,6 +458,7 @@ const wsHandlers = {
 
         if (lastGameId !== gameId) {
           score = 0;
+          abilities = '';
           user.lastGameId = gameId;
           user.save().then(() => {
           });
@@ -461,8 +468,11 @@ const wsHandlers = {
           players[newPlayerName].socket.disconnect();
         }
 
-        // TODO: store power ups and load on reconnects
-        players[newPlayerName] = { socket, score, guessed: false, powerUps: [] };
+        players[newPlayerName] = { socket, score, guessed: false, powerUps: abilities.split(config.STRING_ARRAY_DELIMITER).filter(x => x) };
+
+        players[newPlayerName].powerUps.forEach(ability => {
+          socket.emit(PowerUpEnabledMessage.type, new PowerUpEnabledMessage(ability, true, false).getPayload());
+        });
 
         const playerNames = Object.keys(players);
 
@@ -513,7 +523,7 @@ const wsHandlers = {
         + scoreBonus
         + (winnerScore ? 0 : config.SCORE_BONUS_FIRST);
       winnerScore = winnerScore || score;
-      if(doubleBonus.has(playerName)) {
+      if (doubleBonus.has(playerName)) {
         score *= 2;
       }
       scoreBonus -= config.SCORE_BONUS_REDUCTION;
@@ -526,7 +536,7 @@ const wsHandlers = {
       if (remainingTime > 10)
         guessingTime = guessingTime - Math.min(config.TIME_ROUND_REDUCTION, Math.max(0, remainingTime - config.TIME_ROUND_MINIMUM));
 
-      updatePlayerScoreInDb(playerName);
+      updatePlayerInDb(playerName);
 
       if (checkEveryoneGuessed()) {
         endRound();
@@ -542,7 +552,7 @@ const wsHandlers = {
         socket.emit(ChatMessage.type, new ChatMessage(config.SERVER_CHAT_NAME, `${data.text} is kinda close!`, '#5078cc').getPayload());
       }
     }
-    if(doubleBonus.has(playerName)) {
+    if (doubleBonus.has(playerName)) {
       sendChatMessageToAllPlayers(`${playerName} lost double bonus!`, COLOR_TEXT_POWER_UP);
       doubleBonus.delete(playerName);
     }
@@ -585,9 +595,9 @@ const wsHandlers = {
       COLOR_TEXT_POWER_UP
     ).getPayload());
 
-    const emitter = powerUp.self ? socket : socket.broadcast;
+    const getEmitter = () => powerUp.self ? socket : socket.broadcast; // socket.broadcast is single use?! :(
 
-    if(powerUp.self) {
+    if (powerUp.self) {
       resolveSelfAbility(playerName, powerUp)
     } else {
       const chatMsg = new ChatMessage(config.SERVER_CHAT_NAME, powerUp.message, COLOR_TEXT_POWER_UP);
@@ -599,14 +609,14 @@ const wsHandlers = {
       });
     }
 
-    emitter.emit(PowerUpTriggerMessage.type, new PowerUpTriggerMessage(data.powerUp, true, playerName).getPayload());
+    getEmitter().emit(PowerUpTriggerMessage.type, new PowerUpTriggerMessage(data.powerUp, true).getPayload());
 
     const duration = powerUp.duration;
     const powerUpInterval = startTimer(
       (elapsedTime) => duration < elapsedTime,
       () => {
-        if(duration) {
-          emitter.emit(PowerUpTriggerMessage.type, new PowerUpTriggerMessage(data.powerUp, false, playerName).getPayload());
+        if (duration) {
+          getEmitter().emit(PowerUpTriggerMessage.type, new PowerUpTriggerMessage(data.powerUp, false).getPayload());
         }
       }
     );

@@ -1,6 +1,7 @@
 const Config = {};
 
 Config.SERVER_CHAT_NAME = '/server';
+Config.STRING_ARRAY_DELIMITER = ',';
 
 Config.TIME_ROUND_BASE = 80;
 Config.TIME_ROUND_REDUCTION = 5;
