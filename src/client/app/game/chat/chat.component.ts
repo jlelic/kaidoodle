@@ -45,7 +45,9 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     this.buildForm();
     this.scrollToBottom();
     window.addEventListener('keydown', e => {
-      this.chatInput.nativeElement.focus()
+      if(this.chatInput.nativeElement) {
+        this.chatInput.nativeElement.focus();
+      }
     });
   }
 
