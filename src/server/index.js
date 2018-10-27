@@ -517,7 +517,7 @@ const wsHandlers = {
       console.error(`${playerName} is trying to send chat message under name ${data.sender}`);
     }
     data.sender = playerName;
-    if (gameState == STATE_PLAYING && word && data.text && playerName != drawingPlayerName && data.text.toLowerCase() === word.toLowerCase()) {
+    if (gameState == STATE_PLAYING && word && data.text.trim() && playerName != drawingPlayerName && data.text.toLowerCase() === word.toLowerCase()) {
       let score = config.SCORE_BASE
         + Math.round(Math.min(config.SCORE_TIME_MAXIMUM, remainingTime * config.SCORE_TIME_MULTIPLIER))
         + scoreBonus
