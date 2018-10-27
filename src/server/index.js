@@ -163,7 +163,7 @@ const prepareRound = () => {
     return;
   }
 
-  WordModel.findRandom({ $or: [{ deleted: false }, { deleted: null }] }, {}, { limit: 2 + Math.floor(Math.random() * 11) }, function(err, randomWords) { // does't work with promises :(
+  WordModel.findRandom({ $or: [{ deleted: false }, { deleted: null }] }, {}, { limit: 2 + Math.floor(Math.random() * 9) }, function(err, randomWords) { // does't work with promises :(
     if (err) {
       endGame();
       sendChatMessageToAllPlayers('Error occured when generating words. Please contact administrator.');
