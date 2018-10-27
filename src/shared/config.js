@@ -35,7 +35,7 @@ const powerUps = {
   blur: {
     name: "Blur",
     duration: 15,
-    description: `Apply blur filter on the drawing for all other guessing players for 15 seconds.`,
+    description: `Apply blur effect on the drawing for all other guessing players for 15 seconds.`,
     message: `Looks like someone needs glasses 🔍🤓`
   },
   silence: {
@@ -55,7 +55,7 @@ const powerUps = {
     message: "Taste the rainbow 🌈👅"
   },
   gray: {
-    name: "50 Shades of gray",
+    name: "50 Shades of Gray",
     description: "Make the drawing black & white for other guessing players for the rest of the round.",
     message: "Artistic mode activated 📽🎞"
   },
@@ -66,7 +66,7 @@ const powerUps = {
   },
   double: {
     name: "Double Bonus",
-    description: "After activating, your next guess will give you double points if it is correct. This effect does not stack. Bonus points are not included in the drawing player's reward.",
+    description: "After activating, your next guess will give you double points if it is correct. This effect does not stack. Bonus points are not counted towards the drawing player's reward.",
     self: true
   }
 };
