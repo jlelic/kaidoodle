@@ -518,6 +518,9 @@ const wsHandlers = {
     }
     data.sender = playerName;
     if (gameState == STATE_PLAYING && word && data.text.trim() && playerName != drawingPlayerName && data.text.toLowerCase() === word.toLowerCase()) {
+      if (players[playerName].guessed) {
+        return;
+      }
       let score = config.SCORE_BASE
         + Math.round(Math.min(config.SCORE_TIME_MAXIMUM, remainingTime * config.SCORE_TIME_MULTIPLIER))
         + scoreBonus
