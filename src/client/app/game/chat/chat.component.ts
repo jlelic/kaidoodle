@@ -21,6 +21,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   form: FormGroup;
   messageSubscription: Subscription;
   keepScrollingToBottom = true;
+  scrolledAfterMessage = false;
 
   constructor(private communication: CommunicationService,
               private service: ChatService,
@@ -29,7 +30,8 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
               private sounds: SoundsService) {
     this.messageSubscription = this.service.messageAdded.subscribe(data => {
       const el = this.chatHistoryElement.nativeElement;
-      this.keepScrollingToBottom = data.sender == this.communication.name || el.scrollHeight - el.offsetHeight - el.scrollTop < 5;
+      this.keepScrollingToBottom = data.sender == this.communication.name || el.scrollHeight - el.offsetHeight - el.scrollTop < 10;
+      this.scrolledAfterMessage = false;
 
       if (data.system && data.text.startsWith('You guessed the word')) {
         this.sounds.playOk();
@@ -52,9 +54,10 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   }
 
   ngAfterViewChecked() {
-    if (this.keepScrollingToBottom) {
+    if (!this.scrolledAfterMessage && this.keepScrollingToBottom) {
       this.scrollToBottom();
     }
+    this.scrolledAfterMessage = true;
   }
 
   ngOnDestroy() {
@@ -78,6 +81,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   }
 
   scrollToBottom(force = false): void {
+    console.log('SCROLL');
     this.chatHistoryElement.nativeElement.scrollTop = this.chatHistoryElement.nativeElement.scrollHeight;
   }
 }
