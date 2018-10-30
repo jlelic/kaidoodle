@@ -47,6 +47,9 @@ export class PowerUpsService {
           const change = data.active ? 1 : -1;
           if (change > 0) {
             this.sounds.playAbilitySound(data.powerUp);
+            if(powerUp === config.POWER_UPS.reveal.id) {
+              this._effects[config.POWER_UPS.hide.id] = 0;
+            }
           }
           this._effects[powerUp] += change;
           break;
@@ -55,7 +58,7 @@ export class PowerUpsService {
           break;
         case EndRoundMessage.type:
           this._isRoundGoingOn = false;
-          this._effects = [];
+          this._effects = {};
           break;
         case TimerMessage.type:
           this._timeLeft = data.time;
