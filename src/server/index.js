@@ -525,7 +525,16 @@ const wsHandlers = {
       console.error(`${playerName} is trying to send chat message under name ${data.sender}`);
     }
     data.sender = playerName;
-    if (gameState == STATE_PLAYING && word && data.text.trim() && playerName != drawingPlayerName && data.text.toLowerCase() === word.toLowerCase()) {
+    if (gameState == STATE_PLAYING
+      && word
+      && data.text.trim()
+      && playerName != drawingPlayerName
+      && (
+        data.text.trim().toLowerCase() === word.toLowerCase()
+        || data.text.trim().toLowerCase().replace(/-/g,'') === word.toLowerCase()
+      )
+
+    ) {
       if (players[playerName].guessed) {
         return;
       }
