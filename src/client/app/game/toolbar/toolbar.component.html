@@ -1,8 +1,9 @@
 <div id="toolbarContainer" class="toolGroup">
   <mat-button-toggle-group [value]="tool">
   <span *ngFor="let t of tools">
-    <mat-button-toggle class="toolButton" [value]="t" (change)="onToolSelected(t)">
-      <img class="toolIcon" [src]="'assets/icons/tools/'+t+'.png'">
+    <mat-button-toggle class="toolButton" [value]="t.id" (change)="onToolSelected(t.id)">
+      <key-bind [char]="t.key" (trigger)="onToolSelected(t.id)"></key-bind>
+      <img class="toolIcon" [src]="'assets/icons/tools/'+t.id+'.png'">
     </mat-button-toggle>
   </span>
   </mat-button-toggle-group>

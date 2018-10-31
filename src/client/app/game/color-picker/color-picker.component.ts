@@ -5,7 +5,7 @@ import { Component, OnInit, Output, EventEmitter } from '@angular/core';
   templateUrl: './color-picker.component.html',
   styleUrls: ['./color-picker.component.css']
 })
-export class ColorPickerComponent implements OnInit{
+export class ColorPickerComponent implements OnInit {
 
   @Output() colorSelected = new EventEmitter<string>();
   colors = [
@@ -35,15 +35,23 @@ export class ColorPickerComponent implements OnInit{
     ]
   ];
 
+  keys = [
+    'QWERTYUIOP','ASDFGHJKL;'
+  ];
+
+  colorCoords = '0x0';
+
   private color = this.colors[0][0];
 
-  constructor() {}
+  constructor() {
+  }
 
   ngOnInit() {
   }
 
-  onColorSelected(i:number, j:number) {
+  onColorSelected(i: number, j: number) {
     const newColor = this.colors[i][j];
+    this.colorCoords = `${i}x${j}`;
     this.colorSelected.emit(newColor);
     this.color = newColor;
   }

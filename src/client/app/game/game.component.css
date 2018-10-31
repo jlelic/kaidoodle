@@ -136,6 +136,10 @@
   justify-content: center;
 }
 
+.undoButton {
+  min-width: 70px !important;
+}
+
 #shareToDiscord {
   position: absolute;
   bottom: -54px;

@@ -10,6 +10,7 @@ import { SoundsService } from './sounds.service';
 import { LoggedInGuard } from './auth/logged-in.guard';
 import { DiscordService } from './discord/discord.service';
 import { ChatService } from './chat/chat.service';
+import { KeyBindService } from './key-bind.service';
 
 @NgModule({
   imports: [
@@ -23,6 +24,7 @@ import { ChatService } from './chat/chat.service';
     CommunicationService,
     CookiesService,
     DiscordService,
+    KeyBindService,
     LoggedInGuard,
     PlayersService,
     SoundsService

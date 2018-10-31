@@ -14,6 +14,7 @@ import { ToolbarComponent } from './toolbar/toolbar.component';
 import { ThicknessPickerComponent } from './thickness-picker/thickness-picker.component';
 import { PowerUpsComponent } from './power-ups/power-ups.component';
 import { PowerUpsService } from './power-ups/power-ups.service';
+import { KeyBindComponent } from './key-bind/key-bind.component';
 
 @NgModule({
   imports: [
@@ -30,7 +31,8 @@ import { PowerUpsService } from './power-ups/power-ups.service';
     ColorPickerComponent,
     ToolbarComponent,
     ThicknessPickerComponent,
-    PowerUpsComponent
+    PowerUpsComponent,
+    KeyBindComponent
   ],
   providers: [
     PowerUpsService

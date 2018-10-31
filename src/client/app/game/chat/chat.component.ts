@@ -7,6 +7,7 @@ import { SoundsService } from '../../core/sounds.service';
 
 import { ChatService } from '../../core/chat/chat.service';
 import { PowerUpsService } from '../power-ups/power-ups.service';
+import { PlayersService } from '../../core/players.service';
 
 
 @Component({
@@ -25,6 +26,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   constructor(private communication: CommunicationService,
               private service: ChatService,
+              private players: PlayersService,
               private fb: FormBuilder,
               public powerUps: PowerUpsService,
               private sounds: SoundsService) {
@@ -47,7 +49,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     this.buildForm();
     this.scrollToBottom();
     window.addEventListener('keydown', e => {
-      if(this.chatInput.nativeElement) {
+      if(this.chatInput.nativeElement && !this.players.amDrawing) {
         this.chatInput.nativeElement.focus();
       }
     });

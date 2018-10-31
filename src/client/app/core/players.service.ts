@@ -5,6 +5,7 @@ import * as HandshakeMessage from '../../../shared/messages/handshake-message';
 import * as PlayerMessage from '../../../shared/messages/player-message';
 import * as PlayerDisconnectedMessage from '../../../shared/messages/player-disconnected-message';
 import * as StartRoundMessage from '../../../shared/messages/start-round-message';
+import { AuthService } from './auth/auth.service';
 
 @Injectable()
 export class PlayersService {
@@ -12,7 +13,7 @@ export class PlayersService {
   private _players = [];
   private _drawing = null;
 
-  constructor(private communication: CommunicationService) {
+  constructor(private auth: AuthService, private communication: CommunicationService) {
     this.communication.incomingMessages.subscribe(({ type, data }) => {
       switch (type) {
         case HandshakeMessage.type:
@@ -57,6 +58,10 @@ export class PlayersService {
 
   get drawing() {
     return this._drawing;
+  }
+
+  get amDrawing() {
+    return this._drawing === this.auth.loginName;
   }
 
   public getplayersScoresAsCopy() {

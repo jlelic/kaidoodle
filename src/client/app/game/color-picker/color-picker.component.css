@@ -1,7 +1,12 @@
 .colorButton {
   min-width: 24px;
-  min-height: 24px;
+  max-height: 24px;
   display: inline-block;
+  box-shadow: -3px -3px 0px rgba(0, 0, 0, 0.5) inset, 3px 3px 0px rgba(255, 255, 255, 0.5) inset;
+}
+
+.colorButtonActive {
+  box-shadow: -4px -4px 4px rgba(255, 255, 255, 0.7) inset, 4px 4px 4px rgba(0, 0, 0, 0.7) inset;
 }
 
 .colorCell {

@@ -7,11 +7,15 @@
       <td *ngFor="let j of [0,1,2,3,4,5,6,7,8,9]" class="colorCell">
         <mat-button-toggle
           class="myButton colorButton"
+          [ngClass]="{'colorButtonActive': i+'x'+j === colorCoords}"
           [ngStyle]="{'background-color': colors[i][j]}"
           [value]="i + 'x' +  j"
           (change)="onColorSelected(i, j)"
           (click)="onColorSelected(i, j)"
-        ></mat-button-toggle>
+        >
+          <key-bind [char]="keys[i][j]" (trigger)="onColorSelected(i, j)"></key-bind>
+          &nbsp;
+        </mat-button-toggle>
       </td>
     </tr>
   </mat-button-toggle-group>

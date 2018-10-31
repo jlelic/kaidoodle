@@ -81,10 +81,12 @@
   <thickness-picker (thicknessSelected)="onThicknessSelected($event)"></thickness-picker>
 
   <div class="toolGroup">
-    <button (click)="undo()" mat-button>
+    <button class="undoButton" (click)="undo()" mat-button>
+      <key-bind char="Z" (trigger)="undo()"></key-bind>
       <img class="toolIcon" src="assets/icons/tools/undo.png">
     </button>
-    <button (click)="resetDrawing()" mat-button>
+    <button class="undoButton" (click)="resetDrawing()" mat-button>
+      <key-bind char="X" (trigger)="resetDrawing()"></key-bind>
       <img class="toolIcon" src="assets/icons/tools/clear.png">
     </button>
   </div>
