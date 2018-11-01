@@ -81,13 +81,13 @@
 
 <div *ngIf="canDraw" class="tools-container">
 
-  <toolbar [(tool)]="tool"></toolbar>
+  <toolbar *ngIf="!powerUps.isSabotaging()" [(tool)]="tool"></toolbar>
 
   <color-picker (colorSelected)="onColorSelected($event)"></color-picker>
 
-  <thickness-picker (thicknessSelected)="onThicknessSelected($event)"></thickness-picker>
+  <thickness-picker *ngIf="!powerUps.isSabotaging()" (thicknessSelected)="onThicknessSelected($event)"></thickness-picker>
 
-  <div class="toolGroup">
+  <div class="toolGroup" *ngIf="!powerUps.isSabotaging()">
     <button class="undoButton" (click)="undo()" mat-button>
       <key-bind char="Z" (trigger)="undo()"></key-bind>
       <img class="toolIcon" src="assets/icons/tools/undo.png">

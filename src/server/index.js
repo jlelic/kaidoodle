@@ -60,6 +60,7 @@ const drawHistory = [];
 const chatHistory = [];
 const tempIntervals = [];
 const doubleBonus = new Set();
+const sabotagingPlayers = new Set();
 
 
 let gameState = STATE_IDLE;
@@ -280,6 +281,7 @@ const endRound = () => {
 
   tempIntervals.forEach(clearInterval);
   doubleBonus.clear();
+  sabotagingPlayers.clear();
   grantAbility();
 
   drawingPlayerName = null;
@@ -519,6 +521,14 @@ const resolveSelfAbility = (playerName, ability) => {
     case config.POWER_UPS.fakeGuess.id:
       acceptGuess(playerName, true);
       break;
+    case config.POWER_UPS.sabotage.id:
+      sabotagingPlayers.add(playerName);
+      const sabotageInterval = startTimer(
+        elapsedTime => config.POWER_UPS.sabotage.duration < elapsedTime,
+        () => sabotagingPlayers.delete(playerName)
+      );
+      tempIntervals.push(sabotageInterval);
+      break;
   }
 };
 
@@ -605,7 +615,8 @@ const wsHandlers = {
       })
   },
   [DrawMessage.type]: (socket, data, playerName) => {
-    if (gameState == STATE_PLAYING && playerName !== drawingPlayerName) {
+    if (gameState == STATE_PLAYING && playerName !== drawingPlayerName && !sabotagingPlayers.has(playerName)) {
+      console.warn(`${playerName} is trying to draw on another player's round!`);
       return;
     }
     socket.broadcast.emit(DrawMessage.type, data);

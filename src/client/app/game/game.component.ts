@@ -86,7 +86,7 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   get canDraw() {
-    return !this.isPlaying || this.name == this.drawingPlayerName;
+    return !this.isPlaying || this.name == this.drawingPlayerName || this.powerUps.isSabotaging();
   }
 
   get maxRounds() {
@@ -94,7 +94,7 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   get showWordHint() {
-    return config.TIME_ROUND_BASE - this.time > 3;
+    return config.TIME_ROUND_BASE - this.time > 3 || this.players.amDrawing;
   }
 
   ngOnInit() {
@@ -351,10 +351,16 @@ export class GameComponent implements OnInit, OnDestroy {
     }
     this.startedClickOnCanvas = true;
     const { x, y } = position;
+    let tool = this.tool;
+    let thickness = this.thickness;
+    if(this.powerUps.isSabotaging()) {
+      tool = 'brush';
+      thickness = 6;
+    }
     const message = new DrawMessage(
-      this.tool,
+      tool,
       this.color,
-      this.thickness,
+      thickness,
       x,
       y,
       x,
@@ -385,10 +391,16 @@ export class GameComponent implements OnInit, OnDestroy {
       if (!this.canDraw) {
         return;
       }
+      let tool = this.tool;
+      let thickness = this.thickness;
+      if(this.powerUps.isSabotaging()) {
+        tool = 'brush';
+        thickness = 6;
+      }
       const message = new DrawMessage(
-        this.tool,
+        tool,
         this.color,
-        this.thickness,
+        thickness,
         x,
         y,
         prevX,

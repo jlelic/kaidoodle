@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { KeyBindService } from '../../core/key-bind.service';
 import { PlayersService } from '../../core/players.service';
+import { PowerUpsService } from '../power-ups/power-ups.service';
 
 @Component({
   selector: 'key-bind',
@@ -14,11 +15,14 @@ export class KeyBindComponent implements OnInit, OnDestroy {
 
   subscription;
 
-  constructor(private service: KeyBindService, public players: PlayersService) { }
+  constructor(public players: PlayersService,
+              public abilities: PowerUpsService,
+              private service: KeyBindService,) {
+  }
 
   ngOnInit() {
     this.subscription = this.service.keyPressed.subscribe(char => {
-      if(char == this.char && this.players.amDrawing) {
+      if (char == this.char && (this.players.amDrawing || this.abilities.isSabotaging())) {
         this.trigger.next();
       }
     })

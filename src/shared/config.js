@@ -77,6 +77,12 @@ const powerUps = {
   noHint: {
     name: "No Hint",
     description: "Disable letter hints for other players. Doesn't notify them when used."
+  },
+  sabotage: {
+    name: "Sabotage",
+    self: true,
+    duration: 3,
+    description: "Allows you to draw with basic brush with medium width for the next 3 seconds."
   }
 };
 Object.keys(powerUps).forEach(id => powerUps[id].id = id);

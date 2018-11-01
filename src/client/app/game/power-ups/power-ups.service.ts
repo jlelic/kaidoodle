@@ -106,6 +106,10 @@ export class PowerUpsService {
     return this.isActive(config.POWER_UPS.silence.id);
   }
 
+  public isSabotaging(): boolean {
+    return this.isActive(config.POWER_UPS.sabotage.id);
+  }
+
   public isStretched(): boolean {
     return this.isActive(config.POWER_UPS.stretch.id)
   }
