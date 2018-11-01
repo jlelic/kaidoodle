@@ -507,6 +507,8 @@ const wsHandlers = {
         if (gameState == STATE_IDLE && playerNames.length >= 2) {
           startGame();
         }
+
+        DiscordBot.updateBotStatus(playerNames.length);
       })
   },
   [DrawMessage.type]: (socket, data, playerName) => {
@@ -692,6 +694,7 @@ io.on('connection', (socket) => {
         if (checkEveryoneGuessed()) {
           endRound();
         }
+        DiscordBot.updateBotStatus(playerNames.length);
       })
     });
   });

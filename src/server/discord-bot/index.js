@@ -156,7 +156,8 @@ client.on("message", async message => {
 
 const shareImage = (text, data) => mainChannel.send(text, new Discord.Attachment(new Buffer(data, 'binary'), 'image.png'));
 
+const updateBotStatus = (playerCount) => client.user.setActivity(`with ${playerCount} player${playerCount == 1 ? '' : 's'}`);
 
 client.login(config.token);
 
-module.exports = { shareImage };
+module.exports = { shareImage, updateBotStatus };
