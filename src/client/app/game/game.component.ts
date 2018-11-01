@@ -80,6 +80,10 @@ export class GameComponent implements OnInit, OnDestroy {
     return config.MAX_ROUNDS;
   }
 
+  get showWordHint() {
+    return config.TIME_ROUND_BASE - this.time > 3;
+  }
+
   ngOnInit() {
     this.communication.init();
     this.powerUps.reset();
