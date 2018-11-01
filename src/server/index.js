@@ -483,7 +483,10 @@ const grantAbility = () => {
     }
   });
 
-  if (Math.random() < config.POWER_UP_TO_RANDOM_PLAYER_CHANCE) {
+  if (playerToReceive == null
+    || players[playerToReceive].powerUps.length >= config.MAX_POWER_UPS
+    || Math.random() < config.POWER_UP_TO_RANDOM_PLAYER_CHANCE
+  ) {
     playerToReceive = playerNames[Math.floor(Math.random() * playerNames.length)];
   }
 
@@ -525,7 +528,10 @@ const resolveSelfAbility = (playerName, ability) => {
       sabotagingPlayers.add(playerName);
       const sabotageInterval = startTimer(
         elapsedTime => config.POWER_UPS.sabotage.duration < elapsedTime,
-        () => sabotagingPlayers.delete(playerName)
+        () => {
+          sabotagingPlayers.delete(playerName);
+          sendChatMessage(playerName, 'Sabotage ended', COLOR_TEXT_POWER_UP);
+        }
       );
       tempIntervals.push(sabotageInterval);
       break;
