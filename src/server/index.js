@@ -163,14 +163,15 @@ const prepareRound = () => {
     return;
   }
 
-  WordModel.findRandom({ $or: [{ deleted: false }, { deleted: null }] }, {}, { limit: 2 + Math.floor(Math.random() * 9) }, function(err, randomWords) { // does't work with promises :(
+  WordModel.findRandom({ $or: [{ deleted: false }, { deleted: null }] }, {}, { limit: 100 }, function(err, randomWords) { // does't work with promises :(
     if (err) {
       endGame();
       sendChatMessageToAllPlayers('Error occured when generating words. Please contact administrator.');
       console.log(err);
       return;
     }
-    const wordChoices = randomWords;
+    randomWords.sort((a,b) => (a.lastSeen || 0) - (b.lastSeen || 0));
+    const wordChoices = randomWords.slice(0, 2 + Math.floor(Math.random() * 9));
     console.log(`Preparing round, drawing ${drawingPlayerName}, choices: ${wordChoices.map(({ word }) => word).join(', ')}`);
     players[drawingPlayerName].socket.emit(WordChoicesMessage.type, new WordChoicesMessage(wordChoices).getPayload());
     sendChatMessageToAllPlayers(`${drawingPlayerName} is choosing a word`);
