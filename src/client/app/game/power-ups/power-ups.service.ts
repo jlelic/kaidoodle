@@ -89,6 +89,10 @@ export class PowerUpsService {
     return this.isActive(config.POWER_UPS.blur.id)
   }
 
+  public isElongated(): boolean {
+    return this.isActive(config.POWER_UPS.elongate.id)
+  }
+
   public isGray(): boolean {
     return this.isActive(config.POWER_UPS.gray.id)
   }

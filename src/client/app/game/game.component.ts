@@ -252,6 +252,16 @@ export class GameComponent implements OnInit, OnDestroy {
     this.context.fillRect(0, 0, this.width, this.height);
   }
 
+  elongateWordHint(word: string) {
+    let long = word;
+    if (this.powerUps.isElongated()) {
+      for (let i = word.length / 2; i < 16; i++) {
+        long += '＿\u00A0';
+      }
+    }
+    return long
+  }
+
   getTimeAgoString(timestamp: number): string {
     if(!timestamp) {
       return 'unknown';

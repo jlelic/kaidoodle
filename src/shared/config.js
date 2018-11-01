@@ -74,6 +74,10 @@ const powerUps = {
     name: "Fake Guess",
     description: "Send a message to other players that you correctly guessed the word.",
     self: true
+  },
+  elongate: {
+    name: "Elongate",
+    description: "Send a message to other players that you correctly guessed the word."
   }
 };
 Object.keys(powerUps).forEach(id => powerUps[id].id = id);

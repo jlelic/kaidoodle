@@ -4,7 +4,13 @@
       {{name}}
       <span *ngIf="drawingPlayerName && isPlaying">| {{drawingPlayerName}} is drawing </span>
       <span *ngIf="round">| Round: {{round}}/{{maxRounds}} </span>
-      <span *ngIf="word && !powerUps.isHidden() && showWordHint">| Word: <span id="word"><strong>{{word}}</strong></span> </span>
+      <span *ngIf="word && !powerUps.isHidden() && showWordHint">| Word:
+        <span id="word">
+          <strong>
+            {{powerUps.isElongated() ? elongateWordHint(word) : word}}
+          </strong>
+        </span>
+      </span>
       <span *ngIf="word && powerUps.isHidden()">| T̛̘̥̜̜̼H͉̪̫̟̫̹̯Ę̥͈͓̥͡ ҉̷̲̦͍͈̺̦͔W̧̼O͔̝̭̟̬̰̟̘͡R̮̹͔͕͈̪̖̣D̤̫͔͕͍͙̣ ̧͔̘̘̞̭͍͔͠ͅḨ̹̭͎̖̭̲̀ͅA̷̵̝̮̩͝S̰͓͢ ̝̻͓͍̬B̴̼̯͠E͉̭̤̬̗̜̩͖͡E̳̪͈̦͖Ń̼̙̳̞͔̘͉̺̞̀͟ ̸̧̳̮͍̰̮̣̮̤H̸͠͏̣̻̪̮̹̬̬I҉̷̩̜̜̤̩̟D҉̷̡͍̜̝̳̥͕̘̼D͓E̛͏̤͉͉͍͉̯͖Ǹ̫̘̮͔̫̪͍</span>
       <span>| Time: {{time}} s</span>
     </h3>
@@ -69,7 +75,9 @@
     <chat></chat>
 
   </div>
-  <button id="shareToDiscord" (click)="shareImage()" mat-button><img class="toolIcon" src="assets/icons/discord.png"> SHARE</button>
+  <button id="shareToDiscord" (click)="shareImage()" mat-button><img class="toolIcon" src="assets/icons/discord.png">
+    SHARE
+  </button>
 </div>
 
 <div *ngIf="canDraw" class="tools-container">
