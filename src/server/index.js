@@ -263,10 +263,13 @@ const endRound = () => {
   const drawingPlayerScore = playersGuessed > 0 ? Math.round(winnerScore * ratioGuessed) : config.SCORE_NO_CORRECT_GUESSES;
   roundScores[drawingPlayerName] = drawingPlayerScore;
   if (players[drawingPlayerName]) {
-    players[drawingPlayerName].score += drawingPlayerScore;
     updatePlayerInDb(drawingPlayerName);
-    sendToAllPlayers(new PlayerMessage(drawingPlayerName, players[drawingPlayerName]));
   }
+  Object.keys(players).forEach(playerName => {
+    players[playerName].score += roundScores[playerName] || 0;
+    sendToAllPlayers(new PlayerMessage(playerName, players[playerName]));
+  });
+
 
   let msg = `The word was ${word}. ${playersGuessed}/${playersGuessing} guessed. ${drawingPlayerName} receives ${Math.round(ratioGuessed * 100)}% of ${winnerScore} = ${drawingPlayerScore}`;
   if (playersGuessed === 0) {
@@ -604,7 +607,6 @@ const wsHandlers = {
       }
       scoreBonus -= config.SCORE_BONUS_REDUCTION;
       roundScores[playerName] = score;
-      players[playerName].score += score;
       players[playerName].guessed = true;
       socket.emit(ChatMessage.type, new ChatMessage(config.SERVER_CHAT_NAME, `You guessed the word! +${score} points`, '#00cc00').getPayload());
       socket.broadcast.emit(ChatMessage.type, new ChatMessage(config.SERVER_CHAT_NAME, `${data.sender} guessed the word! +${score} points`, '#007700').getPayload());
