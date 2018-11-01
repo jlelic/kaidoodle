@@ -45,11 +45,6 @@ const powerUps = {
     description: `Disable chat for all other guessing players for 8 seconds.`,
     message: "Shhhh 🤫🤐"
   },
-  hide: {
-    name: "Hide",
-    description: "Hide the word hint for all other guessing players for the rest of the round.",
-    message: "The word was hidden! 🌫😈"
-  },
   rainbow: {
     name: "Rainbow",
     description: "Continuously shift colors of the drawing for other guessing players for the rest of the round.",
@@ -75,9 +70,13 @@ const powerUps = {
     description: "Send a message to other players that you correctly guessed the word.",
     self: true
   },
-  elongate: {
-    name: "Elongate",
-    description: "Send a message to other players that you correctly guessed the word."
+  stretch: {
+    name: "Stretch",
+    description: "Show word as if it was 18 characters long for other guessing players. Doesn't notify them when used."
+  },
+  noHint: {
+    name: "No Hint",
+    description: "Disable letter hints for other players. Doesn't notify them when used."
   }
 };
 Object.keys(powerUps).forEach(id => powerUps[id].id = id);

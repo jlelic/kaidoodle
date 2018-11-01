@@ -68,6 +68,19 @@ export class GameComponent implements OnInit, OnDestroy {
     return this.communication.name;
   }
 
+  get effectiveWord() {
+    if (this.players.amDrawing){
+      return this.word;
+    }
+    if(this.powerUps.isStretched()) {
+      return this.stretchWordHint(this.word);
+    }
+    if(this.powerUps.isNoHint()) {
+      return this.removeHints(this.word);
+    }
+    return this.word;
+  }
+
   get drawingPlayerName() {
     return this.players.drawing;
   }
@@ -252,18 +265,25 @@ export class GameComponent implements OnInit, OnDestroy {
     this.context.fillRect(0, 0, this.width, this.height);
   }
 
-  elongateWordHint(word: string) {
-    let long = word;
-    if (this.powerUps.isElongated()) {
-      for (let i = word.length / 2; i < 16; i++) {
-        long += '＿\u00A0';
+  stretchWordHint(word: string): string {
+    let result = word;
+    if (this.powerUps.isStretched()) {
+      for (let i = word.length / 2; i < 18; i++) {
+        result += '＿\u00A0';
       }
     }
-    return long
+    return result
+  }
+
+  removeHints(word: string): string {
+    if (this.powerUps.isRevealed()) {
+      return word[0] + word.substring(1).replace(/[a-zA-Z]/g, '＿');
+    }
+    return word.replace(/[a-zA-Z]/g, '＿');
   }
 
   getTimeAgoString(timestamp: number): string {
-    if(!timestamp) {
+    if (!timestamp) {
       return 'unknown';
     }
     return tg.ago(timestamp);

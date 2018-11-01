@@ -490,8 +490,7 @@ const grantAbility = () => {
   }
 
   const powerUpList = Object.keys(config.POWER_UPS);
-  const powerUpToGift = config.POWER_UPS.fakeGuess.id;
-  powerUpList[Math.floor(Math.random() * powerUpList.length)];
+  const powerUpToGift = powerUpList[Math.floor(Math.random() * powerUpList.length)];
 
   players[playerToReceive].powerUps.push(powerUpToGift);
   players[playerToReceive].socket.emit(PowerUpEnabledMessage.type, new PowerUpEnabledMessage(powerUpToGift).getPayload());

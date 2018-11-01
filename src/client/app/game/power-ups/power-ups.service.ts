@@ -47,9 +47,6 @@ export class PowerUpsService {
           const change = data.active ? 1 : -1;
           if (change > 0) {
             this.sounds.playAbilitySound(data.powerUp);
-            if(powerUp === config.POWER_UPS.reveal.id) {
-              this._effects[config.POWER_UPS.hide.id] = 0;
-            }
           }
           this._effects[powerUp] += change;
           break;
@@ -89,12 +86,12 @@ export class PowerUpsService {
     return this.isActive(config.POWER_UPS.blur.id)
   }
 
-  public isElongated(): boolean {
-    return this.isActive(config.POWER_UPS.elongate.id)
-  }
-
   public isGray(): boolean {
     return this.isActive(config.POWER_UPS.gray.id)
+  }
+
+  public isNoHint(): boolean {
+    return this.isActive(config.POWER_UPS.noHint.id)
   }
 
   public isRainbow(): boolean {
@@ -109,8 +106,8 @@ export class PowerUpsService {
     return this.isActive(config.POWER_UPS.silence.id);
   }
 
-  public isHidden(): boolean {
-    return this.isActive(config.POWER_UPS.hide.id);
+  public isStretched(): boolean {
+    return this.isActive(config.POWER_UPS.stretch.id)
   }
 
   public reset() {
