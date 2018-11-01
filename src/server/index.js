@@ -386,6 +386,19 @@ const processAdminCommand = (playerName, text) => {
       gamePaused = false;
       sendChatMessageToAllPlayers(`${playerName} resumed the game`);
       break;
+    case 'kick':
+      if (params.length == 0) {
+        sendChatMessage(playerName, 'Usage: /kick <player name>',);
+      }
+      const toKick = params[0];
+      if(!players[toKick]) {
+        sendChatMessage(playerName, `Player ${toKick} not found`, COLOR_TEXT_ERROR);
+        return;
+      }
+      players[toKick].socket.disconnect(0);
+      const messageText = `${toKick} was kicked by ${playerName}`;
+      sendChatMessageToAllPlayers(messageText);
+      console.log(messageText);
   }
 };
 
