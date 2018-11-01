@@ -63,6 +63,7 @@ const doubleBonus = new Set();
 
 
 let gameState = STATE_IDLE;
+let gamePaused = false;
 let drawingPlayerName = '';
 let lastDrawingPlayerName;
 let word;
@@ -170,7 +171,7 @@ const prepareRound = () => {
       console.log(err);
       return;
     }
-    randomWords.sort((a,b) => (a.lastSeen || 0) - (b.lastSeen || 0));
+    randomWords.sort((a, b) => (a.lastSeen || 0) - (b.lastSeen || 0));
     const wordChoices = randomWords.slice(0, 2 + Math.floor(Math.random() * 9));
     console.log(`Preparing round, drawing ${drawingPlayerName}, choices: ${wordChoices.map(({ word }) => word).join(', ')}`);
     players[drawingPlayerName].socket.emit(WordChoicesMessage.type, new WordChoicesMessage(wordChoices).getPayload());
@@ -332,13 +333,19 @@ const getUnixTime = () => {
 };
 
 const startTimer = (updateCallback, doneCallback) => {
-  const startTime = getUnixTime();
+  let lastTime = getUnixTime();
+  let elapsedTime = 0;
   updateCallback(0);
   const intervalId = setInterval(() => {
-      if (updateCallback(getUnixTime() - startTime)) {
+      const nowTime = getUnixTime();
+      if (!gamePaused) {
+        elapsedTime += nowTime - lastTime;
+      }
+      if (updateCallback(elapsedTime)) {
         doneCallback();
         clearInterval(intervalId);
       }
+      lastTime = nowTime;
     },
     1000);
   return intervalId;
@@ -350,8 +357,36 @@ const sendChatMessageToAllPlayers = (text, color = 'gray') => {
   chatHistory.push(message.getPayload());
 };
 
+const sendChatMessage = (playerName, text, color = 'gray') => {
+  const message = new ChatMessage(config.SERVER_CHAT_NAME, text, color);
+  players[playerName].socket.emit(ChatMessage.type, message.getPayload());
+  chatHistory.push(message.getPayload());
+};
+
 const sendToAllPlayers = (message) => {
   io.sockets.emit(message.getType(), message.getPayload());
+};
+
+const processAdminCommand = (playerName, text) => {
+  const [command, ...params] = text.slice(1).split(' ').filter(x => x);
+  switch (command) {
+    case 'pause':
+      if (gamePaused) {
+        sendChatMessage(playerName, 'The game is already paused');
+        return;
+      }
+      gamePaused = true;
+      sendChatMessageToAllPlayers(`${playerName} paused the game`);
+      break;
+    case 'play':
+      if (!gamePaused) {
+        sendChatMessage(playerName, 'The game is already in progress');
+        return;
+      }
+      gamePaused = false;
+      sendChatMessageToAllPlayers(`${playerName} resumed the game`);
+      break;
+  }
 };
 
 const generateWordHint = (addHint = false) => {
@@ -443,7 +478,8 @@ const updateWordStats = (wordToUpdate, played) => {
       w.lastSeen = +new Date();
       return w.save();
     })
-    .then(() => {});
+    .then(() => {
+    });
 };
 
 const wsHandlers = {
@@ -525,16 +561,20 @@ const wsHandlers = {
   },
   [ChatMessage.type]: (socket, data, playerName) => {
     if (playerName !== data.sender) {
-      console.error(`${playerName} is trying to send chat message under name ${data.sender}`);
+      console.warn(`${playerName} is trying to send chat message under name ${data.sender}`);
     }
     data.sender = playerName;
+    if (data.text.startsWith(config.ADMIN_COMMAND_PREFIX)) {
+      processAdminCommand(playerName, data.text);
+      return;
+    }
     if (gameState == STATE_PLAYING
       && word
       && data.text.trim()
       && playerName != drawingPlayerName
       && (
         data.text.trim().toLowerCase() === word.toLowerCase()
-        || data.text.trim().toLowerCase().replace(/-/g,'') === word.toLowerCase()
+        || data.text.trim().toLowerCase().replace(/-/g, '') === word.toLowerCase()
       )
 
     ) {
@@ -646,6 +686,10 @@ const wsHandlers = {
     tempIntervals.push(powerUpInterval);
   },
   [WordMessage.type]: (socket, data, playerName) => {
+    if (gamePaused) {
+      sendChatMessage(playerName, 'Cannot choose the word while the game is paused', COLOR_TEXT_ERROR);
+      return;
+    }
     if (playerName != drawingPlayerName || gameState != STATE_CHOOSING_WORD) {
       return;
     }
