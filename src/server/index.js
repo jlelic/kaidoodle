@@ -707,7 +707,7 @@ const wsHandlers = {
 
     if (powerUp.self) {
       resolveSelfAbility(playerName, powerUp)
-    } else {
+    } else if(powerUp.message) {
       const chatMsg = new ChatMessage(config.SERVER_CHAT_NAME, powerUp.message, COLOR_TEXT_POWER_UP);
       Object.keys(players).forEach(pName => {
         if (pName === drawingPlayerName || pName === playerName) {
