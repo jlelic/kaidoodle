@@ -370,6 +370,43 @@ const sendToAllPlayers = (message) => {
   io.sockets.emit(message.getType(), message.getPayload());
 };
 
+const acceptGuess = (playerName, fake = false) => {
+  if (players[playerName].guessed) {
+    return;
+  }
+  const socket = players[playerName].socket;
+  let score = config.SCORE_BASE
+    + Math.round(Math.min(config.SCORE_TIME_MAXIMUM, remainingTime * config.SCORE_TIME_MULTIPLIER))
+    + scoreBonus
+    + (winnerScore ? 0 : config.SCORE_BONUS_FIRST);
+  if (fake) {
+    socket.broadcast.emit(
+      PlayerMessage.type,
+      new PlayerMessage(playerName, { ...players[playerName], guessed: true }).getPayload()
+    );
+  } else {
+    winnerScore = winnerScore || score;
+    if (doubleBonus.has(playerName)) {
+      score *= 2;
+    }
+    scoreBonus -= config.SCORE_BONUS_REDUCTION;
+    roundScores[playerName] = score;
+    players[playerName].guessed = true;
+
+    sendToAllPlayers(new PlayerMessage(playerName, players[playerName]));
+    updatePlayerInDb(playerName);
+
+    if (checkEveryoneGuessed()) {
+      endRound();
+    }
+    socket.emit(ChatMessage.type, new ChatMessage(config.SERVER_CHAT_NAME, `You guessed the word! +${score} points`, '#00cc00').getPayload());
+  }
+  socket.broadcast.emit(ChatMessage.type, new ChatMessage(config.SERVER_CHAT_NAME, `${playerName} guessed the word! +${score} points`, '#007700').getPayload());
+  if (remainingTime > 10)
+    guessingTime = guessingTime - Math.min(config.TIME_ROUND_REDUCTION, Math.max(0, remainingTime - config.TIME_ROUND_MINIMUM));
+
+};
+
 const processAdminCommand = (playerName, text) => {
   const [command, ...params] = text.slice(1).split(' ').filter(x => x);
   switch (command) {
@@ -394,7 +431,7 @@ const processAdminCommand = (playerName, text) => {
         sendChatMessage(playerName, 'Usage: /kick <player name>',);
       }
       const toKick = params[0];
-      if(!players[toKick]) {
+      if (!players[toKick]) {
         sendChatMessage(playerName, `Player ${toKick} not found`, COLOR_TEXT_ERROR);
         return;
       }
@@ -453,7 +490,8 @@ const grantAbility = () => {
   }
 
   const powerUpList = Object.keys(config.POWER_UPS);
-  const powerUpToGift = powerUpList[Math.floor(Math.random() * powerUpList.length)];
+  const powerUpToGift = config.POWER_UPS.fakeGuess.id;
+  powerUpList[Math.floor(Math.random() * powerUpList.length)];
 
   players[playerToReceive].powerUps.push(powerUpToGift);
   players[playerToReceive].socket.emit(PowerUpEnabledMessage.type, new PowerUpEnabledMessage(powerUpToGift).getPayload());
@@ -478,6 +516,9 @@ const resolveSelfAbility = (playerName, ability) => {
       doubleBonus.add(playerName);
       sendChatMessageToAllPlayers(`${playerName} will get double points if their next guess is correct!`, COLOR_TEXT_POWER_UP);
       player.socket.broadcast.emit(PowerUpTriggerMessage.type, new PowerUpTriggerMessage(ability.id));
+      break;
+    case config.POWER_UPS.fakeGuess.id:
+      acceptGuess(playerName, true);
       break;
   }
 };
@@ -592,35 +633,8 @@ const wsHandlers = {
         data.text.trim().toLowerCase() === word.toLowerCase()
         || data.text.trim().toLowerCase().replace(/-/g, '') === word.toLowerCase()
       )
-
     ) {
-      if (players[playerName].guessed) {
-        return;
-      }
-      let score = config.SCORE_BASE
-        + Math.round(Math.min(config.SCORE_TIME_MAXIMUM, remainingTime * config.SCORE_TIME_MULTIPLIER))
-        + scoreBonus
-        + (winnerScore ? 0 : config.SCORE_BONUS_FIRST);
-      winnerScore = winnerScore || score;
-      if (doubleBonus.has(playerName)) {
-        score *= 2;
-      }
-      scoreBonus -= config.SCORE_BONUS_REDUCTION;
-      roundScores[playerName] = score;
-      players[playerName].guessed = true;
-      socket.emit(ChatMessage.type, new ChatMessage(config.SERVER_CHAT_NAME, `You guessed the word! +${score} points`, '#00cc00').getPayload());
-      socket.broadcast.emit(ChatMessage.type, new ChatMessage(config.SERVER_CHAT_NAME, `${data.sender} guessed the word! +${score} points`, '#007700').getPayload());
-      sendToAllPlayers(new PlayerMessage(playerName, players[playerName]));
-      if (remainingTime > 10)
-        guessingTime = guessingTime - Math.min(config.TIME_ROUND_REDUCTION, Math.max(0, remainingTime - config.TIME_ROUND_MINIMUM));
-
-      updatePlayerInDb(playerName);
-
-      if (checkEveryoneGuessed()) {
-        endRound();
-      }
-
-
+      acceptGuess(playerName);
       return;
     } else if (data.text && word) {
       const lDistance = leven(data.text, word);

@@ -69,6 +69,11 @@ const powerUps = {
     name: "Double Bonus",
     description: "After activating, your next guess will give you double points if it is correct. This effect does not stack. Bonus points are not counted towards the drawing player's reward.",
     self: true
+  },
+  fakeGuess: {
+    name: "Fake Guess",
+    description: "Send a message to other players that you correctly guessed the word.",
+    self: true
   }
 };
 Object.keys(powerUps).forEach(id => powerUps[id].id = id);
