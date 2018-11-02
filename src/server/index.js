@@ -893,7 +893,7 @@ app.get('/api/words', (req, res, next) => {
     throw `Invalid page number ${page}`;
   }
 
-  WordModel.paginate({}, { page, limit })
+  WordModel.paginate({}, { page, limit, sort: [['_id', 1]] })
     .then(result => {
       res.json(result);
     })
