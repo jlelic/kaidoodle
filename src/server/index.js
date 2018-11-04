@@ -647,7 +647,7 @@ const wsHandlers = {
       && playerName != drawingPlayerName
       && (
         data.text.trim().toLowerCase() === word.toLowerCase()
-        || data.text.trim().toLowerCase().replace(/-/g, '') === word.toLowerCase()
+        || data.text.trim().toLowerCase() === word.replace(/-/g, '').toLowerCase()
       )
     ) {
       acceptGuess(playerName);
