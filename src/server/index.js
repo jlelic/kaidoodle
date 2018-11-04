@@ -675,6 +675,12 @@ const wsHandlers = {
 
     let canCast = false;
     let powerUpIndex;
+
+    if(!powerUp) {
+      sendChatMessage(playerName, 'Unknown ability, please refresh the page using "Ctrl + F5"', COLOR_TEXT_ERROR);
+      return;
+    }
+
     players[playerName].powerUps.forEach((playerPowerUp, i) => {
       if (playerPowerUp === powerUp.id) {
         canCast = true;
