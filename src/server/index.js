@@ -833,7 +833,7 @@ io.on('connection', (socket) => {
         if (checkEveryoneGuessed()) {
           endRound();
         }
-        DiscordBot.updateBotStatus(playerNames.length);
+        DiscordBot.updateBotStatus(playerNames);
       })
     });
   });
