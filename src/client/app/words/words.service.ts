@@ -10,11 +10,11 @@ export class WordsService {
   constructor(private api: ApiService, private auth: AuthService) {
   }
 
-  addWords(words): Observable<any> {
+  addWords(words: string[]): Observable<any> {
     return this.api.post('words', { words, author: this.auth.loginName })
   }
 
-  deleteWord(word): Observable<any> {
+  deleteWord(word: string): Observable<any> {
     return this.api.delete(`word/${word}`);
   }
 

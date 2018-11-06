@@ -1,0 +1,11 @@
+.mat-spinner {
+  display: inline-block !important;
+}
+
+.errorIcon {
+  color: red;
+}
+
+.doneIcon {
+  color: green;
+}

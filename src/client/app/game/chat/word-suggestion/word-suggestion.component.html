@@ -1,0 +1,8 @@
+<div class="wordSuggestion">
+  <button (click)="onSend()" [disabled]="clicked" mat-button>
+    {{word}}
+    <mat-spinner *ngIf="loading" [diameter]="20"></mat-spinner>
+    <span *ngIf="done" class="doneIcon">✔️</span>
+    <span *ngIf="error" class="errorIcon" title="Error occured">❌️️</span>
+  </button>
+</div>

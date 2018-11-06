@@ -2,8 +2,13 @@
   <div id="chatHeader">Chat:</div>
   <div id="chatHistory" #chatHistory>
   <span class="chatMessage" *ngFor="let message of messages" [ngStyle]="{'color': message.color}">
-    <span *ngIf="!message.system"><strong>{{message.sender}}:</strong> {{message.text}}</span>
-    <span *ngIf="message.system" [innerHTML]="message.html" target="_blank"></span>
+    <ng-container *ngIf="!message.special">
+      <span *ngIf="!message.system"><strong>{{message.sender}}:</strong> {{message.text}}</span>
+      <span *ngIf="message.system" [innerHTML]="message.html" target="_blank"></span>
+    </ng-container>
+    <ng-container *ngIf="message.special">
+      <word-suggestions *ngIf="message.special == 'suggestions'" [words]="message.words"></word-suggestions>
+    </ng-container>
   </span>
   </div>
   <form *ngIf="!powerUps.isSilenced()" [formGroup]="form" (submit)="onSubmit($event)">

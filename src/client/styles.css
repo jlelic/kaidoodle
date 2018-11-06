@@ -48,3 +48,6 @@ body {
   padding: 4px;
 }
 
+.serverMessage {
+  color: gray;
+}

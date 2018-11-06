@@ -22,6 +22,7 @@ const GameOverMessage = require('../shared/messages/game-over-message');
 const ChatMessage = require('../shared/messages/chat-message');
 const StartRoundMessage = require('../shared/messages/start-round-message');
 const EndRoundMessage = require('../shared/messages/end-round-message');
+const NewWordsSuggestionsMessage = require('../shared/messages/new-words-suggestions-message');
 const PowerUpEnabledMessage = require('../shared/messages/power-up-enabled-message');
 const PowerUpTriggerMessage = require('../shared/messages/power-up-trigger-message');
 const PlayerMessage = require('../shared/messages/player-message');
@@ -61,6 +62,7 @@ const chatHistory = [];
 const tempIntervals = [];
 const doubleBonus = new Set();
 const sabotagingPlayers = new Set();
+const newWordsSuggestions = new Map();
 
 
 let gameState = STATE_IDLE;
@@ -269,6 +271,7 @@ const endRound = () => {
   Object.keys(players).forEach(playerName => {
     players[playerName].score += roundScores[playerName] || 0;
     sendToAllPlayers(new PlayerMessage(playerName, players[playerName]));
+    sendNewWordsSuggestions(playerName);
   });
 
 
@@ -301,6 +304,21 @@ const endRound = () => {
       }
     }
   );
+};
+
+const addWordSuggestion = (playerName, suggestion) => {
+  let isValid = false;
+  try {
+    isValid = checkWord.check(suggestion);
+  } catch (err) {
+  }
+  if (!isValid) {
+    return;
+  }
+  if (!newWordsSuggestions.has(playerName)) {
+    newWordsSuggestions.set(playerName, new Set());
+  }
+  newWordsSuggestions.get(playerName).add(suggestion);
 };
 
 const checkEveryoneGuessed = () => {
@@ -370,6 +388,29 @@ const sendChatMessage = (playerName, text, color = 'gray') => {
 
 const sendToAllPlayers = (message) => {
   io.sockets.emit(message.getType(), message.getPayload());
+};
+
+const sendNewWordsSuggestions = (playerName) => {
+  if (!newWordsSuggestions.has(playerName)) {
+    return;
+  }
+  const suggestionsSet = newWordsSuggestions.get(playerName);
+  WordModel.find({
+    word: {
+      $in: [...suggestionsSet]
+    }
+  })
+    .then(words => {
+      words.forEach(({word}) => suggestionsSet.delete(word));
+      if(suggestionsSet.size == 0) {
+        return;
+      }
+      players[playerName].socket.emit(
+        NewWordsSuggestionsMessage.type,
+        new NewWordsSuggestionsMessage([...suggestionsSet]).getPayload()
+      );
+    })
+    .catch(console.error);
 };
 
 const acceptGuess = (playerName, fake = false) => {
@@ -659,6 +700,7 @@ const wsHandlers = {
       } else if (lDistance == 2 && remainingTime <= config.TIME_ROUND_MINIMUM) {
         socket.emit(ChatMessage.type, new ChatMessage(config.SERVER_CHAT_NAME, `${data.text} is kinda close!`, '#5078cc').getPayload());
       }
+      addWordSuggestion(playerName, data.text);
     }
     if (doubleBonus.has(playerName)) {
       sendChatMessageToAllPlayers(`${playerName} lost double bonus!`, COLOR_TEXT_POWER_UP);
@@ -676,7 +718,7 @@ const wsHandlers = {
     let canCast = false;
     let powerUpIndex;
 
-    if(!powerUp) {
+    if (!powerUp) {
       sendChatMessage(playerName, 'Unknown ability, please refresh the page using "Ctrl + F5"', COLOR_TEXT_ERROR);
       return;
     }
@@ -713,7 +755,7 @@ const wsHandlers = {
 
     if (powerUp.self) {
       resolveSelfAbility(playerName, powerUp)
-    } else if(powerUp.message) {
+    } else if (powerUp.message) {
       const chatMsg = new ChatMessage(config.SERVER_CHAT_NAME, powerUp.message, COLOR_TEXT_POWER_UP);
       Object.keys(players).forEach(pName => {
         if (pName === drawingPlayerName || pName === playerName) {

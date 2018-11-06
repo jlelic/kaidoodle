@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import {
   MatButtonModule,
-  MatButtonToggleModule
+  MatButtonToggleModule,
+  MatProgressSpinnerModule,
 } from '@angular/material';
 
 import { GameComponent } from './game.component';
@@ -15,6 +16,8 @@ import { ThicknessPickerComponent } from './thickness-picker/thickness-picker.co
 import { PowerUpsComponent } from './power-ups/power-ups.component';
 import { PowerUpsService } from './power-ups/power-ups.service';
 import { KeyBindComponent } from './key-bind/key-bind.component';
+import { WordSuggestionsComponent } from './chat/word-suggestions/word-suggestions.component';
+import { WordSuggestionComponent } from './chat/word-suggestion/word-suggestion.component';
 
 @NgModule({
   imports: [
@@ -22,6 +25,7 @@ import { KeyBindComponent } from './key-bind/key-bind.component';
     FormsModule,
     MatButtonModule,
     MatButtonToggleModule,
+    MatProgressSpinnerModule,
     ReactiveFormsModule
   ],
   declarations: [
@@ -32,7 +36,9 @@ import { KeyBindComponent } from './key-bind/key-bind.component';
     ToolbarComponent,
     ThicknessPickerComponent,
     PowerUpsComponent,
-    KeyBindComponent
+    KeyBindComponent,
+    WordSuggestionsComponent,
+    WordSuggestionComponent
   ],
   providers: [
     PowerUpsService
