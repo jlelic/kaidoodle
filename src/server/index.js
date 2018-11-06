@@ -285,6 +285,7 @@ const endRound = () => {
   tempIntervals.forEach(clearInterval);
   doubleBonus.clear();
   sabotagingPlayers.clear();
+  newWordsSuggestions.clear();
   grantAbility();
 
   drawingPlayerName = null;
