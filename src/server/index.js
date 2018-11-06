@@ -659,7 +659,7 @@ const wsHandlers = {
           startGame();
         }
 
-        DiscordBot.updateBotStatus(playerNames.length);
+        DiscordBot.updateBotStatus(playerNames);
       })
   },
   [DrawMessage.type]: (socket, data, playerName) => {
