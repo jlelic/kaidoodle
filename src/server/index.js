@@ -954,6 +954,8 @@ app.post('/api/words', (req, res, next) => {
   const addedBy = req.user.login;
   const force = req.body.force;
 
+  const lastSeen = getUnixTime();
+
   const validWords = [];
   const invalid = [];
   const short = [];
@@ -969,7 +971,7 @@ app.post('/api/words', (req, res, next) => {
       short.push(word)
     } else {
       word = word.toLowerCase();
-      validWords.push({ word, addedBy })
+      validWords.push({ word, addedBy, lastSeen })
     }
   });
 
