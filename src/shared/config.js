@@ -72,12 +72,12 @@ const powerUps = {
   },
   stretch: {
     name: "Stretch",
-    description: "Show word as if it was 18 characters long for other guessing players. Doesn't notify them when used.",
+    description: "Show word as if it was 18 characters long for other guessing players.",
     message: "The word has been stretched"
   },
   noHint: {
     name: "No Hint",
-    description: "Disable letter hints for other players. Doesn't notify them when used.",
+    description: "Disable letter hints for other players.",
     message: "No hints are available this turn"
   },
   sabotage: {
