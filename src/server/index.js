@@ -954,7 +954,7 @@ app.post('/api/words', (req, res, next) => {
   const addedBy = req.user.login;
   const force = req.body.force;
 
-  const lastSeen = getUnixTime();
+  const lastSeen = +new Date();
 
   const validWords = [];
   const invalid = [];
