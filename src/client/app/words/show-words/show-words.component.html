@@ -31,7 +31,7 @@
       {{(data.page - 1) * data.limit + i + 1 }}.
     </span>
     <span class="wordTableCell" [ngClass]="{deletedWord: entry.deleted}">
-      <a [href]="'https://www.google.cz/search?q='+entry.word" target="_blank">{{entry.word}}</a>
+      <a [href]="'https://www.google.cz/search?tbm=isch&q='+entry.word" target="_blank">{{entry.word}}</a>
     </span>
     <span class="wordTableCell">
       {{getTimeAgoString(entry.lastSeen)}}
