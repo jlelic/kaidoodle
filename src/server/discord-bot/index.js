@@ -4,6 +4,10 @@ const token = process.env.DISCORD_BOT_TOKEN || require('./bot-token');
 const CHANNEL_NAME = 'kaidoodle';
 
 const client = new Discord.Client();
+client.on('error', (err) => {
+  console.log('Discord.js error:');
+  console.error(err);
+});
 
 if (!token) {
   throw 'Missing discord bot token!';
