@@ -11,6 +11,7 @@ const checkWord = (require('check-word')('en'));
 
 const DiscordBot = require('./discord-bot');
 
+const RecordModel = require('./models/record');
 const UserModel = require('./models/user');
 const WordModel = require('./models/word');
 
@@ -55,6 +56,7 @@ const STATE_CHOOSING_WORD = 'CHOOSING_WORD';
 
 const COLOR_TEXT_ERROR = '#ff0000';
 const COLOR_TEXT_POWER_UP = '#9300d6';
+const COLOR_TEXT_RECORD = '#a18e18';
 
 const players = {};
 const drawHistory = [];
@@ -63,12 +65,14 @@ const tempIntervals = [];
 const doubleBonus = new Set();
 const sabotagingPlayers = new Set();
 const newWordsSuggestions = new Map();
+const records = {};
 
 
 let gameState = STATE_IDLE;
 let gamePaused = false;
 let drawingPlayerName = '';
 let lastDrawingPlayerName;
+let roundStartTime;
 let word;
 let wordCharLength;
 let wordHint;
@@ -244,6 +248,7 @@ const startRound = () => {
   );
   console.log(`Starting round, word: ${word}, player ${drawingPlayerName} drawing`);
   gameState = STATE_PLAYING;
+  roundStartTime = +new Date();
 };
 
 const endRound = () => {
@@ -280,6 +285,7 @@ const endRound = () => {
     msg = `The word was ${word}. No one guessed. ${drawingPlayerName} loses ${-config.SCORE_NO_CORRECT_GUESSES} points`;
   }
   sendChatMessageToAllPlayers(msg, colorString.to.hex([200 - 100 * ratioGuessed, 100 + 100 * ratioGuessed, 0]));
+  checkFastestFullyGuessed();
   updateWordStats(word, true);
 
   tempIntervals.forEach(clearInterval);
@@ -338,6 +344,16 @@ const checkWordHintAvailable = (time) => {
     wordHint = generateWordHint(true);
     players[drawingPlayerName].socket.broadcast.emit(WordMessage.type, new WordMessage(wordHint).getPayload());
   }
+};
+
+const loadRecords = () => {
+  RecordModel.find({})
+    .then(rcrds => {
+      rcrds.forEach(record => {
+        records[record.type] = record.value;
+      });
+      console.log('Records loaded')
+    })
 };
 
 const updatePlayerInDb = (login) => {
@@ -402,8 +418,8 @@ const sendNewWordsSuggestions = (playerName) => {
     }
   })
     .then(words => {
-      words.forEach(({word}) => suggestionsSet.delete(word));
-      if(suggestionsSet.size == 0) {
+      words.forEach(({ word }) => suggestionsSet.delete(word));
+      if (suggestionsSet.size == 0) {
         return;
       }
       players[playerName].socket.emit(
@@ -429,6 +445,9 @@ const acceptGuess = (playerName, fake = false) => {
       new PlayerMessage(playerName, { ...players[playerName], guessed: true }).getPayload()
     );
   } else {
+    if (!winnerScore) {
+      checkFastestGuess(playerName);
+    }
     winnerScore = winnerScore || score;
     if (doubleBonus.has(playerName)) {
       score *= 2;
@@ -584,16 +603,62 @@ const updateWordStats = (wordToUpdate, played) => {
   WordModel.findOne({ word: wordToUpdate })
     .then(w => {
       if (played) {
-        if (Object.keys(players).length < 4) {
+        if (Object.keys(players).length >= config.MIN_PLAYER_COUNT_STATISTICS) {
           w.played++;
+          w.lastPlayed = +new Date();
         }
-        w.lastPlayed = +new Date();
       }
       w.lastSeen = +new Date();
       return w.save();
     })
     .then(() => {
     });
+};
+
+const checkFastestGuess = (playerName) => {
+  const guessTime = +new Date() - roundStartTime;
+  if (records[config.RECORD_FASTEST_GUESS]
+    && records[config.RECORD_FASTEST_GUESS] < guessTime) {
+    return;
+  }
+
+  records[config.RECORD_FASTEST_GUESS] = guessTime;
+
+  const msg = `New fastest guess record ${guessTime / 1000} seconds set by ${playerName}!`;
+  sendChatMessageToAllPlayers(msg, COLOR_TEXT_RECORD);
+
+  storeRecord(config.RECORD_FASTEST_GUESS, playerName, guessTime, drawHistory);
+  console.log(msg);
+};
+
+const checkFastestFullyGuessed = () => {
+  if (Object.keys(players).length < config.MIN_PLAYER_COUNT_STATISTICS) {
+    return;
+  }
+
+  const guessTime = +new Date() - roundStartTime;
+  if (records[config.RECORD_FASTEST_FULLY_GUESSED]
+    && records[config.RECORD_FASTEST_FULLY_GUESSED] < guessTime) {
+    return;
+  }
+
+  records[config.RECORD_FASTEST_FULLY_GUESSED] = guessTime;
+
+  const msg = `New fastest fully guessed drawing record ${guessTime / 1000} seconds set by ${drawingPlayerName}!`;
+  sendChatMessageToAllPlayers(msg, COLOR_TEXT_RECORD);
+
+  storeRecord(config.RECORD_FASTEST_FULLY_GUESSED, drawingPlayerName, guessTime, drawHistory);
+  console.log(msg);
+};
+
+const storeRecord = (type, playerName, value, drawing) => {
+  RecordModel.findOneAndUpdate(
+    { type },
+    { type, playerName, drawing, value },
+    { upsert: true }
+  )
+    .then(() => console.log('Record updated!'))
+    .catch(console.error);
 };
 
 const wsHandlers = {
@@ -1057,4 +1122,5 @@ app.use((error, req, res, next) => {
   res.status(500).send({ message: error.toString() })
 });
 
+loadRecords();
 server.listen(PORT, () => console.log(`Game server is listening on ${PORT}`));
