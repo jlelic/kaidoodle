@@ -12,6 +12,7 @@ const RecordSchema = new mongoose.Schema({
     index: { unique: true }
   },
   playerName: { type: String, required: true },
+  word: { type: String, required: true },
   value: { type: Number, required: true },
   drawing: { type: mongoose.Schema.Types.Mixed }
 });

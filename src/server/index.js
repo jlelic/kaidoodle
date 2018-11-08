@@ -656,7 +656,7 @@ const checkFastestFullyGuessed = () => {
 const storeRecord = (type, playerName, value, drawing) => {
   RecordModel.findOneAndUpdate(
     { type },
-    { type, playerName, drawing, value },
+    { type, playerName, drawing, value, word },
     { upsert: true }
   )
     .then(() => console.log('Record updated!'))
