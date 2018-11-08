@@ -1,16 +1,16 @@
 import { Component, OnInit, ViewChild, ElementRef, OnDestroy } from '@angular/core';
 import { Subscription } from 'rxjs/Subscription';
-import * as colorString from 'color-string';
 import * as tg from 'time-ago'
 
-import * as DrawMessage from '../../../shared/messages/draw-message';
-import * as StartRoundMessage from '../../../shared/messages/start-round-message';
-import * as EndRoundMessage from '../../../shared/messages/end-round-message';
-import * as GameOverMessage from '../../../shared/messages/game-over-message';
-import * as TimerMessage from '../../../shared/messages/timer-message';
-import * as WordMessage from '../../../shared/messages/word-message';
-import * as WordChoicesMessage from '../../../shared/messages/word-choices-message';
-import * as config from '../../../shared/config';
+import * as DrawMessage from '../../../shared/messages/draw-message.js';
+import * as StartRoundMessage from '../../../shared/messages/start-round-message.js';
+import * as EndRoundMessage from '../../../shared/messages/end-round-message.js';
+import * as GameOverMessage from '../../../shared/messages/game-over-message.js';
+import * as TimerMessage from '../../../shared/messages/timer-message.js';
+import * as WordMessage from '../../../shared/messages/word-message.js';
+import * as WordChoicesMessage from '../../../shared/messages/word-choices-message.js';
+import * as config from '../../../shared/config.js';
+import * as render from '../../../shared/render-engine.js';
 
 import { CommunicationService } from '../core/communication.service';
 import { PlayersService } from '../core/players.service';
@@ -44,7 +44,6 @@ export class GameComponent implements OnInit, OnDestroy {
   thickness = 1;
   color: string = 'black';
   tool: string = 'brush';
-  kaiImage;
   isPlaying = false;
   roundResults = null;
   gameResults = null;
@@ -101,8 +100,9 @@ export class GameComponent implements OnInit, OnDestroy {
     this.communication.init();
     this.powerUps.reset();
 
-    this.kaiImage = new Image();
-    this.kaiImage.src = 'assets/presets/kai.png';
+    const kaiImage = new Image();
+    kaiImage.src = 'assets/presets/kai.png';
+    render.loadImage('kai', kaiImage);
 
     const canvas = this.canvas.nativeElement;
     canvas.height = this.height;
@@ -118,7 +118,7 @@ export class GameComponent implements OnInit, OnDestroy {
 
     this.context = canvas.getContext('2d');
     this.context.imageSmoothingEnabled = false;
-    this.clearCanvas();
+    render.clearCanvas(this.canvas.nativeElement);
     this.drawHistory = [];
     this.messageSubscription = this.communication.incomingMessages.subscribe(({ type, data }) => {
       switch (type) {
@@ -132,7 +132,7 @@ export class GameComponent implements OnInit, OnDestroy {
           this.isPlaying = true;
           this.word = data.word;
           this.round = data.round;
-          this.clearCanvas();
+          render.clearCanvas(this.canvas.nativeElement);
           this.drawHistory = [];
           break;
         case EndRoundMessage.type:
@@ -181,90 +181,6 @@ export class GameComponent implements OnInit, OnDestroy {
     this.messageSubscription.unsubscribe();
   }
 
-  bucketTool(startX: number, startY: number, color) {
-    const colorEq = (data, color, b) => {
-      return color[0] === data.data[b]
-        && color[1] === data.data[b + 1]
-        && color[2] === data.data[b + 2]
-        && color[3] === data.data[b + 3]
-    };
-
-    const getIndex = (x, y, width) => y * (width * 4) + x * 4;
-
-    const [r, g, b, _] = colorString.get.rgb(color);
-    const a = 255;
-    const ctx = this.context;
-    const fillData = ctx.createImageData(1, 1);
-    fillData.data[0] = r;
-    fillData.data[1] = g;
-    fillData.data[2] = b;
-    fillData.data[3] = a;
-    const w = this.canvas.nativeElement.width;
-    const h = this.canvas.nativeElement.height;
-    const startIndex = getIndex(startX, startY, w);
-    const data = ctx.getImageData(0, 0, w, h);
-    const newData = ctx.getImageData(0, 0, w, h);
-    const bg = [
-      data.data[startIndex + 0],
-      data.data[startIndex + 1],
-      data.data[startIndex + 2],
-      data.data[startIndex + 3]
-    ];
-
-    if (bg[0] == r && bg[1] == g && bg[2] == b) {
-      return
-    }
-
-    const stack = [{ x: startX, y: startY }];
-
-    while (stack.length) {
-      let { x, y } = stack.pop();
-
-      if (!colorEq(data, bg, getIndex(x, y, w))) {
-        continue;
-      }
-
-      while (x > 0 && colorEq(data, bg, getIndex(x - 1, y, w))) {
-        x -= 1
-      }
-
-      let up = true, down = true;
-      while (x < w && colorEq(data, bg, getIndex(x, y, w))) {
-        const i = getIndex(x, y, w);
-        data.data[i] = r;
-        data.data[i + 1] = g;
-        data.data[i + 2] = b;
-        data.data[i + 3] = a;
-        newData.data[i] = r;
-        newData.data[i + 1] = g;
-        newData.data[i + 2] = b;
-        newData.data[i + 3] = a;
-
-        if (y + 1 < h) {
-          if (up && colorEq(data, bg, getIndex(x, y + 1, w))) {
-            stack.push({ x, y: y + 1 });
-          }
-          up = !colorEq(data, bg, getIndex(x, y + 1, w));
-        }
-
-        if (y > 0) {
-          if (down && colorEq(data, bg, getIndex(x, y - 1, w))) {
-            stack.push({ x, y: y - 1 });
-          }
-          down = !colorEq(data, bg, getIndex(x, y - 1, w));
-        }
-
-        x += 1;
-      }
-    }
-    ctx.putImageData(newData, 0, 0);
-  }
-
-  clearCanvas() {
-    this.context.fillStyle = 'white';
-    this.context.fillRect(0, 0, this.width, this.height);
-  }
-
   stretchWordHint(word: string): string {
     let result = word;
     if (this.powerUps.isStretched()) {
@@ -286,15 +202,7 @@ export class GameComponent implements OnInit, OnDestroy {
     if (!timestamp) {
       return 'unknown';
     }
-    return tg.ago(timestamp);
-  }
-
-  isDrawContinuous(data) {
-    if (!data) {
-      return false;
-    }
-    const { x, y, prevX, prevY } = data;
-    return !(typeof prevX !== 'number' || typeof prevY !== 'number' || (x === prevX && y === prevY));
+    return tg['ago'](timestamp);
   }
 
   calculateCanvasPosition(event: MouseEvent) {
@@ -415,6 +323,10 @@ export class GameComponent implements OnInit, OnDestroy {
     this.communication.send(new WordMessage(wordChoice));
   }
 
+  processDrawMessage(message) {
+    render.processDrawMessage(this.canvas.nativeElement, message, this.drawHistory);
+  }
+
   resetDrawing() {
     if (!this.canDraw) {
       return;
@@ -448,53 +360,6 @@ export class GameComponent implements OnInit, OnDestroy {
     const message = new DrawMessage('undo');
     this.processDrawMessage(message.getPayload());
     this.communication.send(message);
-  }
-
-  processDrawMessage(data, addToHistory = true) {
-    this.context.strokeStyle = data.color;
-    let { tool, x, y, prevX, prevY, thickness } = data;
-    this.context.lineWidth = thickness;
-    const isContinuous = this.isDrawContinuous(data);
-    switch (tool) {
-      case 'brush':
-        this.context.beginPath();
-        if (isContinuous) {
-          this.context.lineCap = 'round';
-          this.context.moveTo(prevX, prevY);
-          this.context.lineTo(x, y);
-        } else {
-          this.context.ellipse(x - thickness, y, thickness, thickness, 0, 0, 0);
-        }
-        this.context.stroke();
-        break;
-      case 'bucket':
-        this.bucketTool(x, y, data.color);
-        break;
-      case 'eraser':
-        this.processDrawMessage({ ...data, color: 'white', tool: 'brush' }, false);
-        break;
-      case 'kai':
-        this.context.drawImage(this.kaiImage, x - 128, y - 400);
-        break;
-      case 'clear':
-        this.drawHistory = [];
-        this.clearCanvas();
-        break;
-      case 'undo':
-        this.clearCanvas();
-        let isLastContinuous;
-        do {
-          isLastContinuous = this.isDrawContinuous(this.drawHistory[this.drawHistory.length - 1]);
-          this.drawHistory.pop();
-        } while (isLastContinuous);
-        this.drawHistory.forEach(data => this.processDrawMessage(data, false));
-        addToHistory = false;
-        break;
-    }
-
-    if (addToHistory) {
-      this.drawHistory.push(data);
-    }
   }
 
   processRoundResults(data) {
