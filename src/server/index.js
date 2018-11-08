@@ -896,6 +896,7 @@ io.on('connection', (socket) => {
           delete players[name];
           console.log(`Player ${name} disconnected!`);
           sendChatMessageToAllPlayers(`${name} disconnected`);
+          DiscordBot.updateBotStatus(Object.keys(players));
 
           if (name === drawingPlayerName) {
             if (playerNames.length < 2) {
@@ -904,13 +905,11 @@ io.on('connection', (socket) => {
               endRound();
             }
           }
-          return;
         }
-        if (checkEveryoneGuessed()) {
-          endRound();
-        }
-        DiscordBot.updateBotStatus(playerNames);
-      })
+      });
+      if (gameState == STATE_PLAYING && checkEveryoneGuessed()) {
+        endRound();
+      }
     });
   });
 });
