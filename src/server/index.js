@@ -73,6 +73,7 @@ let gamePaused = false;
 let drawingPlayerName = '';
 let lastDrawingPlayerName;
 let roundStartTime;
+let startedDrawing = true;
 let word;
 let wordCharLength;
 let wordHint;
@@ -233,6 +234,7 @@ const startRound = () => {
   drawHistory.splice(0, drawHistory.length);
   sendChatMessageToAllPlayers(`${drawingPlayerName} is drawing now!`);
 
+  startedDrawing = false;
   guessingTime = config.TIME_ROUND_BASE;
   remainingTime = guessingTime;
   winnerScore = 0;
@@ -351,8 +353,8 @@ const loadRecords = () => {
     .then(rcrds => {
       rcrds.forEach(record => {
         records[record.type] = record.value;
+        console.log(`Loaded record ${record.type}: ${record.value} by ${record.playerName}`);
       });
-      console.log('Records loaded')
     })
 };
 
@@ -732,6 +734,15 @@ const wsHandlers = {
       console.warn(`${playerName} is trying to draw on another player's round!`);
       return;
     }
+
+    if (!startedDrawing
+      && gameState === STATE_PLAYING
+      && drawHistory.length === 0
+      && !winnerScore
+      && config.TIME_ROUND_BASE - remainingTime > 20) {
+      sendChatMessageToAllPlayers(`It only took ${drawingPlayerName} ${config.TIME_ROUND_BASE - remainingTime} seconds to start drawing 👌`)
+    }
+    startedDrawing = true;
     socket.broadcast.emit(DrawMessage.type, data);
     if (data.tool == 'clear') {
       drawHistory.splice(0, drawHistory.length);
