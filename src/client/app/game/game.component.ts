@@ -26,6 +26,7 @@ import { PowerUpsService } from './power-ups/power-ups.service';
 })
 export class GameComponent implements OnInit, OnDestroy {
   @ViewChild('canvas') canvas: ElementRef;
+  @ViewChild('flashlightCircle') flashlightRef: ElementRef;
 
   messageSubscription: Subscription;
   context: CanvasRenderingContext2D;
@@ -54,6 +55,7 @@ export class GameComponent implements OnInit, OnDestroy {
   mouseUpListener;
   mouseMoveListener;
 
+  flashlight;
 
   constructor(private chat: ChatService,
               private communication: CommunicationService,
@@ -107,6 +109,7 @@ export class GameComponent implements OnInit, OnDestroy {
     const canvas = this.canvas.nativeElement;
     canvas.height = this.height;
     canvas.width = this.width;
+    this.flashlight = this.flashlightRef.nativeElement;
 
     // fuck me
     this.mouseDownListener = this.onMouseDown.bind(this);
@@ -198,6 +201,14 @@ export class GameComponent implements OnInit, OnDestroy {
     return word.replace(/[a-zA-Z]/g, '＿');
   }
 
+  moveFlashlight(position) {
+    if (!position) {
+      return;
+    }
+    this.flashlight.setAttribute('cx', position.x / this.width);
+    this.flashlight.setAttribute('cy', position.y / this.height);
+  }
+
   getTimeAgoString(timestamp: number): string {
     if (!timestamp) {
       return 'unknown';
@@ -285,13 +296,16 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   onMouseMove(event: MouseEvent) {
+    const position = this.calculateCanvasPosition(event);
+    if (!position) {
+      return;
+    }
+    if(this.powerUps.isFlashlight()) {
+      this.moveFlashlight(position);
+    }
     if (this.startedClickOnCanvas) {
       event.preventDefault();
     } else {
-      return;
-    }
-    const position = this.calculateCanvasPosition(event);
-    if (!position) {
       return;
     }
     const { x, y, prevX, prevY } = position;

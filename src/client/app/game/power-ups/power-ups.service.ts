@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
 import { CommunicationService } from '../../core/communication.service';
 
-import * as PowerUpEnabledMessage from '../../../../shared/messages/power-up-enabled-message';
-import * as PowerUpTriggerMessage from '../../../../shared/messages/power-up-trigger-message';
-import * as StartRoundMessage from '../../../../shared/messages/start-round-message';
-import * as EndRoundMessage from '../../../../shared/messages/end-round-message';
-import * as TimerMessage from '../../../../shared/messages/timer-message';
-import * as config from '../../../../shared/config';
+import * as PowerUpEnabledMessage from '../../../../shared/messages/power-up-enabled-message.js';
+import * as PowerUpTriggerMessage from '../../../../shared/messages/power-up-trigger-message.js';
+import * as StartRoundMessage from '../../../../shared/messages/start-round-message.js';
+import * as EndRoundMessage from '../../../../shared/messages/end-round-message.js';
+import * as TimerMessage from '../../../../shared/messages/timer-message.js';
+import * as config from '../../../../shared/config.js';
 import { PlayersService } from '../../core/players.service';
 import { AuthService } from '../../core/auth/auth.service';
 import { SoundsService } from '../../core/sounds.service';
@@ -84,6 +84,10 @@ export class PowerUpsService {
 
   public isBlurred(): boolean {
     return this.isActive(config.POWER_UPS.blur.id)
+  }
+
+  public isFlashlight(): boolean {
+    return this.isActive(config.POWER_UPS.flashlight.id)
   }
 
   public isGray(): boolean {

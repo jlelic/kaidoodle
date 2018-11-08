@@ -1,6 +1,6 @@
 <div id="game">
   <div id="gameHeader">
-    <h3>
+    <h4>
       {{name}}
       <span *ngIf="drawingPlayerName && isPlaying">| {{drawingPlayerName}} is drawing </span>
       <span *ngIf="round">| Round: {{round}}/{{maxRounds}} </span>
@@ -12,7 +12,7 @@
         </span>
       </span>
       <span>| Time: {{time}} s</span>
-    </h3>
+    </h4>
   </div>
 
   <div id="gameContainer">
@@ -27,7 +27,16 @@
           hueOverlayEven: powerUps.isRainbow() && (time/3 % 2) <  1,
           hueOverlayOdd: powerUps.isRainbow() && (time/3 % 2) >=  1
         }'>
-          <canvas id="gameCanvas" #canvas></canvas>
+          <span *ngIf="powerUps.isFlashlight()" class="blackoutOverlay blackoutOverlayActive">
+          </span>
+          <svg width="0" height="0" style="position:absolute" viewBox="0 0 800 600">
+            <clipPath id="flashlightClippingPath" clipPathUnits="objectBoundingBox">
+              <circle cx="0.5" cy="0.5" r="0.1" id="circle" #flashlightCircle/>
+              <rect x="0" y="0" width="1" height="0.001"/>
+              <rect x="0" y="0.999" width="1" height="0.001"/>
+            </clipPath>
+          </svg>
+          <canvas id="gameCanvas" [ngClass]="{'flashlightEffect': powerUps.isFlashlight()}" #canvas></canvas>
         </span>
         <span class="blackoutOverlay" [ngClass]="{'blackoutOverlayActive': powerUps.isBlackout()}">
         </span>
@@ -85,7 +94,8 @@
 
   <color-picker (colorSelected)="onColorSelected($event)"></color-picker>
 
-  <thickness-picker *ngIf="!powerUps.isSabotaging()" (thicknessSelected)="onThicknessSelected($event)"></thickness-picker>
+  <thickness-picker *ngIf="!powerUps.isSabotaging()" (thicknessSelected)="onThicknessSelected($event)">
+  </thickness-picker>
 
   <div class="toolGroup" *ngIf="!powerUps.isSabotaging()">
     <button class="undoButton" (click)="undo()" mat-button>

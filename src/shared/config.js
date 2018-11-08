@@ -38,8 +38,8 @@ Config.RECORD_TYPES = [
 const powerUps = {
   blackout: {
     name: "Blackout",
-    duration: 10,
-    description: `Hide the drawing for all other guessing players for 10 seconds.`,
+    duration: 8,
+    description: `Hide the drawing for all other guessing players for 8 seconds.`,
     message: `YOU JUST GOT BLACKED! 👨🏿🍆`,
   },
   blur: {
@@ -94,6 +94,12 @@ const powerUps = {
     self: true,
     duration: 3,
     description: "Allows you to draw with basic brush with medium width for the next 3 seconds."
+  },
+  flashlight: {
+    name: "Flashlight",
+    duration: 15,
+    message: "Apagando las luces! Quick, use the flashlight! 🔦💡",
+    description: "Reduce visible area for other guessing players for 15 seconds."
   }
 };
 Object.keys(powerUps).forEach(id => powerUps[id].id = id);
