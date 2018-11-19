@@ -180,7 +180,7 @@ const prepareRound = () => {
       return;
     }
     randomWords.sort((a, b) => (a.lastSeen || 0) - (b.lastSeen || 0));
-    const wordChoices = randomWords.slice(0, 2 + Math.floor(Math.random() * 9));
+    const wordChoices = randomWords.slice(0, 4 + Math.floor(Math.random() * 7));
     console.log(`Preparing round, drawing ${drawingPlayerName}, choices: ${wordChoices.map(({ word }) => word).join(', ')}`);
     players[drawingPlayerName].socket.emit(WordChoicesMessage.type, new WordChoicesMessage(wordChoices).getPayload());
     sendChatMessageToAllPlayers(`${drawingPlayerName} is choosing a word`);
